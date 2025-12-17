@@ -67,6 +67,70 @@ var BUTTON_COLOR = "#222";
 var INFO_COLOR = "#888";
 var HOVER_OUTLINE = "#2563eb";
 var ACTIVE_OUTLINE = "#16a34a";
+var LABEL_BOLD = "<b>B</b>";
+var LABEL_ITALIC = "<i>I</i>";
+var LABEL_UNDERLINE = "<u>U</u>";
+var LABEL_STRIKETHROUGH = "<s>S</s>";
+var LABEL_UNDO = "Undo";
+var LABEL_REDO = "Redo";
+var LABEL_LINK = "Link";
+var LABEL_ALIGN_LEFT = `
+	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+		<rect x="1" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
+		<rect x="1" y="6" width="14" height="2" rx="0.5" fill="currentColor" />
+		<rect x="1" y="10" width="10" height="2" rx="0.5" fill="currentColor" />
+		<rect x="1" y="14" width="14" height="2" rx="0.5" fill="currentColor" />
+	</svg>
+`;
+var LABEL_ALIGN_CENTER = `
+	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+		<rect x="3" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
+		<rect x="1" y="6" width="14" height="2" rx="0.5" fill="currentColor" />
+		<rect x="3" y="10" width="10" height="2" rx="0.5" fill="currentColor" />
+		<rect x="1" y="14" width="14" height="2" rx="0.5" fill="currentColor" />
+	</svg>
+`;
+var LABEL_ALIGN_RIGHT = `
+	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+		<rect x="5" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
+		<rect x="1" y="6" width="14" height="2" rx="0.5" fill="currentColor" />
+		<rect x="5" y="10" width="10" height="2" rx="0.5" fill="currentColor" />
+		<rect x="1" y="14" width="14" height="2" rx="0.5" fill="currentColor" />
+	</svg>
+`;
+var FONT_OPTIONS = [
+  { label: "Arial", value: "Arial" },
+  { label: "Georgia", value: "Georgia" },
+  { label: "Times New Roman", value: "Times New Roman" },
+  { label: "Courier New", value: "Courier New" },
+  { label: "Tahoma", value: "Tahoma" }
+];
+var SIZE_OPTIONS = [
+  { label: "8", value: "8" },
+  { label: "9", value: "9" },
+  { label: "10", value: "10" },
+  { label: "11", value: "11" },
+  { label: "12", value: "12" },
+  { label: "14", value: "14" },
+  { label: "16", value: "16" },
+  { label: "18", value: "18" },
+  { label: "20", value: "20" },
+  { label: "22", value: "22" },
+  { label: "24", value: "24" },
+  { label: "26", value: "26" },
+  { label: "28", value: "28" },
+  { label: "36", value: "36" },
+  { label: "48", value: "48" },
+  { label: "72", value: "72" }
+];
+var FORMAT_OPTIONS = [
+  { label: "Heading 1", value: "h1" },
+  { label: "Heading 2", value: "h2" },
+  { label: "Heading 3", value: "h3" },
+  { label: "Heading 4", value: "h4" },
+  { label: "Heading 5", value: "h5" },
+  { label: "Heading 6", value: "h6" }
+];
 
 // src/utils/sanitize.ts
 import createDOMPurify from "dompurify";
@@ -166,7 +230,14 @@ function _getCurrentEditable() {
 }
 function pushStandaloneSnapshot(clearRedo = true) {
   if (!_doc) return;
-  const snapRaw = _doc.documentElement.outerHTML;
+  const clone = _doc.documentElement.cloneNode(true);
+  const toolbarNode = clone.querySelector(`#${TOOLBAR_ID}`);
+  if (toolbarNode && toolbarNode.parentNode)
+    toolbarNode.parentNode.removeChild(toolbarNode);
+  const styleNode = clone.querySelector(`#${STYLE_ID}`);
+  if (styleNode && styleNode.parentNode)
+    styleNode.parentNode.removeChild(styleNode);
+  const snapRaw = clone.outerHTML;
   const snap = sanitizeHtml(snapRaw, _doc);
   if (!_undoStack.length || _undoStack[_undoStack.length - 1] !== snap) {
     _undoStack.push(snap);
@@ -206,6 +277,19 @@ export {
   INFO_COLOR,
   HOVER_OUTLINE,
   ACTIVE_OUTLINE,
+  LABEL_BOLD,
+  LABEL_ITALIC,
+  LABEL_UNDERLINE,
+  LABEL_STRIKETHROUGH,
+  LABEL_UNDO,
+  LABEL_REDO,
+  LABEL_LINK,
+  LABEL_ALIGN_LEFT,
+  LABEL_ALIGN_CENTER,
+  LABEL_ALIGN_RIGHT,
+  FONT_OPTIONS,
+  SIZE_OPTIONS,
+  FORMAT_OPTIONS,
   sanitizeHtml,
   _setDoc,
   _getDoc,
@@ -218,4 +302,4 @@ export {
   pushStandaloneSnapshot,
   setMaxStackSize
 };
-//# sourceMappingURL=chunk-NW6WSZFA.mjs.map
+//# sourceMappingURL=chunk-A3UDAUE6.mjs.map

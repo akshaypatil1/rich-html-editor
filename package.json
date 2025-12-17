@@ -30,6 +30,7 @@
   "keywords": [
     "rich-editor",
     "html-editor",
+    "rich-html-editor",
     "wysiwyg",
     "framework-agnostic",
     "vanilla-js"

@@ -6,8 +6,21 @@ import {
   BUTTON_COLOR,
   CLASS_ACTIVE,
   CLASS_EDITABLE,
+  FONT_OPTIONS,
+  FORMAT_OPTIONS,
   HOVER_OUTLINE,
   INFO_COLOR,
+  LABEL_ALIGN_CENTER,
+  LABEL_ALIGN_LEFT,
+  LABEL_ALIGN_RIGHT,
+  LABEL_BOLD,
+  LABEL_ITALIC,
+  LABEL_LINK,
+  LABEL_REDO,
+  LABEL_STRIKETHROUGH,
+  LABEL_UNDERLINE,
+  LABEL_UNDO,
+  SIZE_OPTIONS,
   STYLE_ID,
   TOOLBAR_BG,
   TOOLBAR_BORDER,
@@ -24,7 +37,7 @@ import {
   getEditorEventEmitter,
   pushStandaloneSnapshot,
   sanitizeHtml
-} from "./chunk-NW6WSZFA.mjs";
+} from "./chunk-A3UDAUE6.mjs";
 
 // src/dom/styles.ts
 function injectStyles(doc) {
@@ -103,6 +116,28 @@ function injectStyles(doc) {
   width: 16px;
   height: 16px;
   display: block;
+  /* Default: use stroke icons (outline) so they look like Phosphor regular */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+/* Active/pressed: switch to filled appearance */
+#${TOOLBAR_ID} button[aria-pressed="true"] svg{
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Focus and accessibility */
+#${TOOLBAR_ID} button:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+
+/* Disabled state */
+#${TOOLBAR_ID} button:disabled{
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 `;
   if (!styleEl) {
@@ -124,7 +159,7 @@ function injectToolbar(doc, options) {
   function makeButton(label, title, command, value, isActive, disabled) {
     const btn = doc.createElement("button");
     btn.type = "button";
-    if (label && label.trim().startsWith("<svg")) {
+    if (label && label.trim().startsWith("<")) {
       btn.innerHTML = label;
     } else {
       btn.textContent = label;
@@ -163,8 +198,10 @@ function injectToolbar(doc, options) {
     const label = doc.createElement("label");
     label.title = title;
     label.setAttribute("aria-label", title);
+    label.className = "color-input-label";
     const input = doc.createElement("input");
     input.type = "color";
+    input.className = "toolbar-color-input";
     input.onchange = (e) => {
       options.onCommand(command, e.target.value);
     };
@@ -172,69 +209,82 @@ function injectToolbar(doc, options) {
     return label;
   }
   const format = options.getFormatState();
-  const ICON_BOLD = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 6h5a3 3 0 0 1 0 6H7V6z" fill="currentColor"/><path d="M7 12h6a3 3 0 0 1 0 6H7v-6z" fill="currentColor" opacity="0.95"/></svg>';
-  const ICON_ITALIC = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 4h8v2h-3.5l-4.5 12H16v2H6v-2h3.5l4.5-12H10V4z" fill="currentColor"/></svg>';
-  const ICON_UNDERLINE = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 4v6a6 6 0 0 0 12 0V4h-2v6a4 4 0 0 1-8 0V4H6z" fill="currentColor"/><path d="M6 20h12v2H6v-2z" fill="currentColor"/></svg>';
-  const ICON_UNDO = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 7L4 12l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20 12a8 8 0 0 0-8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-  const ICON_REDO = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 7l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 12a8 8 0 0 0 8 8h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-  const ICON_LINK = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 14a3 3 0 0 1 0-4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M14 10a3 3 0 0 1 0 4l-1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-  const ICON_ALIGN_LEFT = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="4" y="5" width="14" height="2" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="2" rx="1" fill="currentColor"/><rect x="4" y="13" width="14" height="2" rx="1" fill="currentColor"/><rect x="4" y="17" width="10" height="2" rx="1" fill="currentColor"/></svg>';
-  const ICON_ALIGN_CENTER = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="5" y="5" width="14" height="2" rx="1" fill="currentColor"/><rect x="7" y="9" width="10" height="2" rx="1" fill="currentColor"/><rect x="5" y="13" width="14" height="2" rx="1" fill="currentColor"/><rect x="7" y="17" width="10" height="2" rx="1" fill="currentColor"/></svg>';
-  const ICON_ALIGN_RIGHT = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="6" y="5" width="14" height="2" rx="1" fill="currentColor"/><rect x="8" y="9" width="10" height="2" rx="1" fill="currentColor"/><rect x="6" y="13" width="14" height="2" rx="1" fill="currentColor"/><rect x="8" y="17" width="10" height="2" rx="1" fill="currentColor"/></svg>';
-  toolbar.appendChild(
-    makeButton(ICON_BOLD, "Bold", "bold", void 0, format.bold)
+  function makeGroup() {
+    const g = doc.createElement("div");
+    g.className = "toolbar-group";
+    return g;
+  }
+  function makeSep() {
+    const s = doc.createElement("div");
+    s.className = "toolbar-sep";
+    return s;
+  }
+  const undoBtn = makeButton(
+    LABEL_UNDO,
+    "Undo",
+    "undo",
+    void 0,
+    false,
+    !options.canUndo()
   );
-  toolbar.appendChild(
-    makeButton(ICON_ITALIC, "Italic", "italic", void 0, format.italic)
+  undoBtn.onclick = () => options.onUndo();
+  const redoBtn = makeButton(
+    LABEL_REDO,
+    "Redo",
+    "redo",
+    void 0,
+    false,
+    !options.canRedo()
   );
-  toolbar.appendChild(
+  redoBtn.onclick = () => options.onRedo();
+  const grp1 = makeGroup();
+  grp1.appendChild(undoBtn);
+  grp1.appendChild(redoBtn);
+  toolbar.appendChild(grp1);
+  toolbar.appendChild(makeSep());
+  const grp2 = makeGroup();
+  grp2.appendChild(makeSelect("Format", "formatBlock", FORMAT_OPTIONS));
+  grp2.appendChild(makeSelect("Font", "fontName", FONT_OPTIONS));
+  grp2.appendChild(makeSelect("Size", "fontSize", SIZE_OPTIONS));
+  toolbar.appendChild(grp2);
+  toolbar.appendChild(makeSep());
+  const grp3 = makeGroup();
+  grp3.appendChild(
+    makeButton(LABEL_BOLD, "Bold", "bold", void 0, format.bold)
+  );
+  grp3.appendChild(
+    makeButton(LABEL_ITALIC, "Italic", "italic", void 0, format.italic)
+  );
+  grp3.appendChild(
     makeButton(
-      ICON_UNDERLINE,
+      LABEL_UNDERLINE,
       "Underline",
       "underline",
       void 0,
       format.underline
     )
   );
-  toolbar.appendChild(
-    makeSelect("Font", "fontName", [
-      { label: "Arial", value: "Arial" },
-      { label: "Georgia", value: "Georgia" },
-      { label: "Times New Roman", value: "Times New Roman" },
-      { label: "Courier New", value: "Courier New" },
-      { label: "Tahoma", value: "Tahoma" }
-    ])
+  grp3.appendChild(makeButton(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  toolbar.appendChild(grp3);
+  toolbar.appendChild(makeSep());
+  const grp4 = makeGroup();
+  grp4.appendChild(makeButton(LABEL_ALIGN_LEFT, "Align left", "align", "left"));
+  grp4.appendChild(
+    makeButton(LABEL_ALIGN_CENTER, "Align center", "align", "center")
   );
-  toolbar.appendChild(
-    makeSelect("Size", "fontSize", [
-      { label: "Small", value: "2" },
-      { label: "Normal", value: "3" },
-      { label: "Medium", value: "4" },
-      { label: "Large", value: "5" },
-      { label: "XL", value: "6" }
-    ])
+  grp4.appendChild(
+    makeButton(LABEL_ALIGN_RIGHT, "Align right", "align", "right")
   );
-  toolbar.appendChild(
-    makeButton(ICON_UNDO, "Undo", "undo", void 0, false, !options.canUndo())
-  );
-  toolbar.appendChild(
-    makeButton(ICON_REDO, "Redo", "redo", void 0, false, !options.canRedo())
-  );
-  toolbar.appendChild(makeButton(ICON_LINK, "Insert link", "link"));
-  toolbar.appendChild(makeColorInput("Text color", "foreColor"));
-  toolbar.appendChild(makeColorInput("Highlight color", "hiliteColor"));
-  toolbar.appendChild(
-    makeButton(ICON_ALIGN_LEFT, "Align left", "align", "left")
-  );
-  toolbar.appendChild(
-    makeButton(ICON_ALIGN_CENTER, "Align center", "align", "center")
-  );
-  toolbar.appendChild(
-    makeButton(ICON_ALIGN_RIGHT, "Align right", "align", "right")
-  );
-  const info = doc.createElement("span");
-  info.textContent = options.getSelectedElementInfo() ? `Selected: ${options.getSelectedElementInfo()}` : "Click any highlighted element to edit";
-  toolbar.appendChild(info);
+  toolbar.appendChild(grp4);
+  toolbar.appendChild(makeSep());
+  const grp5 = makeGroup();
+  grp5.appendChild(makeColorInput("Text color", "foreColor"));
+  grp5.appendChild(makeColorInput("Highlight color", "hiliteColor"));
+  toolbar.appendChild(grp5);
+  toolbar.appendChild(makeSep());
+  const grp6 = makeGroup();
+  grp6.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
+  toolbar.appendChild(grp6);
   toolbar.addEventListener("keydown", (e) => {
     const focusable = Array.from(
       toolbar.querySelectorAll("button, select, input, [tabindex]")
@@ -341,6 +391,11 @@ function handleUndo() {
     }
     const safe = sanitizeHtml(prev.replace(/^<!doctype html>\n?/i, ""), doc);
     doc.documentElement.innerHTML = safe;
+    injectStyles(doc);
+    try {
+      doc.dispatchEvent(new Event("selectionchange"));
+    } catch (err) {
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[rich-html-editor] Undo failed:", message);
@@ -368,6 +423,11 @@ function handleRedo() {
       doc
     );
     doc.documentElement.innerHTML = safeNext;
+    injectStyles(doc);
+    try {
+      doc.dispatchEvent(new Event("selectionchange"));
+    } catch (err) {
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[rich-html-editor] Redo failed:", message);
@@ -412,17 +472,13 @@ function applyStandaloneCommand(command, value) {
     if (command === "bold") wrapSelectionWithElement(doc, "strong");
     else if (command === "italic") wrapSelectionWithElement(doc, "em");
     else if (command === "underline") wrapSelectionWithElement(doc, "u");
+    else if (command === "strike") wrapSelectionWithElement(doc, "s");
     else if (command === "fontName")
       wrapSelectionWithElement(doc, "span", { fontFamily: value });
     else if (command === "fontSize") {
-      const map = {
-        "2": "12px",
-        "3": "14px",
-        "4": "16px",
-        "5": "18px",
-        "6": "20px"
-      };
-      const sz = map[value || "3"] || value || "";
+      const raw = value || "14";
+      const n = parseInt(raw, 10);
+      const sz = Number.isFinite(n) ? `${n}px` : raw;
       wrapSelectionWithElement(doc, "span", { fontSize: sz });
     } else if (command === "link") {
       const sel = doc.getSelection();
@@ -443,6 +499,19 @@ function applyStandaloneCommand(command, value) {
       const block = findBlockAncestor(node);
       if (block) block.style.textAlign = value || "left";
       else wrapSelectionWithElement(doc, "div", { textAlign: value });
+    } else if (command === "formatBlock") {
+      const sel = doc.getSelection();
+      const node = (sel == null ? void 0 : sel.anchorNode) || null;
+      const block = findBlockAncestor(node);
+      const tag = (value || "p").toLowerCase();
+      if (block && block.parentElement) {
+        const newEl = doc.createElement(tag);
+        newEl.className = block.className || "";
+        while (block.firstChild) newEl.appendChild(block.firstChild);
+        block.parentElement.replaceChild(newEl, block);
+      } else {
+        wrapSelectionWithElement(doc, tag);
+      }
     }
     pushStandaloneSnapshot();
   } catch (error) {
@@ -594,7 +663,7 @@ function initRichEditor(iframe, config) {
     _setRedoStack([]);
     _setCurrentEditable(null);
     if (config == null ? void 0 : config.maxStackSize) {
-      import("./state-DIUYI7XS.mjs").then((m) => m.setMaxStackSize(config.maxStackSize)).catch(() => {
+      import("./state-54NPZ5HL.mjs").then((m) => m.setMaxStackSize(config.maxStackSize)).catch(() => {
       });
     }
     attachStandaloneHandlers(doc);
@@ -626,7 +695,28 @@ function getCleanHTML() {
     if (!doc.documentElement) {
       throw new Error("Document is missing documentElement");
     }
-    return "<!doctype html>\n" + doc.documentElement.outerHTML;
+    const clone = doc.documentElement.cloneNode(true);
+    const toolbarNode = clone.querySelector(`#${TOOLBAR_ID}`);
+    if (toolbarNode && toolbarNode.parentNode)
+      toolbarNode.parentNode.removeChild(toolbarNode);
+    const styleNode = clone.querySelector(`#${STYLE_ID}`);
+    if (styleNode && styleNode.parentNode)
+      styleNode.parentNode.removeChild(styleNode);
+    const editableNodes = clone.querySelectorAll(
+      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
+    );
+    editableNodes.forEach((el) => {
+      try {
+        if (el instanceof Element) {
+          if (el.hasAttribute("contenteditable"))
+            el.removeAttribute("contenteditable");
+          if (el.hasAttribute("tabindex")) el.removeAttribute("tabindex");
+          el.classList.remove(CLASS_EDITABLE, CLASS_ACTIVE);
+        }
+      } catch (e) {
+      }
+    });
+    return "<!doctype html>\n" + clone.outerHTML;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[rich-html-editor] Failed to get clean HTML:", message);

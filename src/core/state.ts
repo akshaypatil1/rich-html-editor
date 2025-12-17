@@ -1,5 +1,5 @@
 import { editorEventEmitter } from "./events";
-import { DEFAULT_MAX_STACK } from "./constants";
+import { DEFAULT_MAX_STACK, TOOLBAR_ID, STYLE_ID } from "./constants";
 import { sanitizeHtml } from "../utils/sanitize";
 
 let _doc: Document | null = null;
@@ -49,7 +49,16 @@ export function _getCurrentEditable() {
 }
 export function pushStandaloneSnapshot(clearRedo = true) {
   if (!_doc) return;
-  const snapRaw = _doc.documentElement.outerHTML;
+  // Clone the documentElement and remove injected UI (toolbar/style)
+  // so snapshots capture only the user's content.
+  const clone = _doc.documentElement.cloneNode(true) as HTMLElement;
+  const toolbarNode = clone.querySelector(`#${TOOLBAR_ID}`);
+  if (toolbarNode && toolbarNode.parentNode)
+    toolbarNode.parentNode.removeChild(toolbarNode);
+  const styleNode = clone.querySelector(`#${STYLE_ID}`);
+  if (styleNode && styleNode.parentNode)
+    styleNode.parentNode.removeChild(styleNode);
+  const snapRaw = clone.outerHTML;
   const snap = sanitizeHtml(snapRaw, _doc);
   if (!_undoStack.length || _undoStack[_undoStack.length - 1] !== snap) {
     _undoStack.push(snap);

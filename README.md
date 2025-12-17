@@ -12,6 +12,10 @@ A framework-agnostic, plug-and-play rich HTML editor library for adding WYSIWYG 
 - 🔒 **Security** - URL sanitization to prevent XSS attacks
 - 📦 **Small Bundle** - ~13KB minified (ESM format)
 
+## Changelog
+
+See the full changelog in [CHANGELOG.md](CHANGELOG.md). Recent fixes and UX improvements are documented under the Unreleased section.
+
 ## Installation
 
 ### From npm (once published)

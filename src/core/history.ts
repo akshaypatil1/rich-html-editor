@@ -6,6 +6,7 @@ import {
   _setRedoStack,
 } from "./state";
 import { sanitizeHtml } from "../utils/sanitize";
+import { injectStyles } from "../dom/styles";
 
 export function handleUndo() {
   try {
@@ -27,6 +28,15 @@ export function handleUndo() {
     }
     const safe = sanitizeHtml(prev.replace(/^<!doctype html>\n?/i, ""), doc);
     doc.documentElement.innerHTML = safe;
+    // Re-inject editor styles that were removed when the document HTML
+    // was replaced, and trigger a selectionchange so the toolbar is
+    // re-rendered by the existing selectionchange handler.
+    injectStyles(doc);
+    try {
+      doc.dispatchEvent(new Event("selectionchange"));
+    } catch (err) {
+      /* ignore dispatch errors */
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[rich-html-editor] Undo failed:", message);
@@ -55,6 +65,13 @@ export function handleRedo() {
       doc
     );
     doc.documentElement.innerHTML = safeNext;
+    // Re-inject styles and notify listeners so toolbar/styles are restored
+    injectStyles(doc);
+    try {
+      doc.dispatchEvent(new Event("selectionchange"));
+    } catch (err) {
+      /* ignore dispatch errors */
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[rich-html-editor] Redo failed:", message);

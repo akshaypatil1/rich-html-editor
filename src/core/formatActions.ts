@@ -41,17 +41,14 @@ export function applyStandaloneCommand(command: string, value?: string) {
     if (command === "bold") wrapSelectionWithElement(doc, "strong");
     else if (command === "italic") wrapSelectionWithElement(doc, "em");
     else if (command === "underline") wrapSelectionWithElement(doc, "u");
+    else if (command === "strike") wrapSelectionWithElement(doc, "s");
     else if (command === "fontName")
       wrapSelectionWithElement(doc, "span", { fontFamily: value as any });
     else if (command === "fontSize") {
-      const map: Record<string, string> = {
-        "2": "12px",
-        "3": "14px",
-        "4": "16px",
-        "5": "18px",
-        "6": "20px",
-      };
-      const sz = map[value || "3"] || value || "";
+      // Accept numeric font-size values (e.g. "12", "16") and apply as px.
+      const raw = value || "14";
+      const n = parseInt(raw, 10);
+      const sz = Number.isFinite(n) ? `${n}px` : raw;
       wrapSelectionWithElement(doc, "span", { fontSize: sz as any });
     } else if (command === "link") {
       const sel = doc.getSelection();
@@ -72,6 +69,23 @@ export function applyStandaloneCommand(command: string, value?: string) {
       const block = findBlockAncestor(node);
       if (block) block.style.textAlign = value || "left";
       else wrapSelectionWithElement(doc, "div", { textAlign: value as any });
+    } else if (command === "formatBlock") {
+      // Change block-level element to selected tag (p, h1..h6)
+      const sel = doc.getSelection();
+      const node = sel?.anchorNode || null;
+      const block = findBlockAncestor(node);
+      const tag = (value || "p").toLowerCase();
+      if (block && block.parentElement) {
+        // Replace existing block with new block of desired tag
+        const newEl = doc.createElement(tag);
+        // Preserve inline styles?
+        newEl.className = (block as HTMLElement).className || "";
+        while (block.firstChild) newEl.appendChild(block.firstChild);
+        block.parentElement.replaceChild(newEl, block);
+      } else {
+        // Wrap selection in the block tag
+        wrapSelectionWithElement(doc, tag);
+      }
     }
     pushStandaloneSnapshot();
   } catch (error) {

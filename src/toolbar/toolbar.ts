@@ -18,13 +18,20 @@
  */
 import {
   TOOLBAR_ID,
-  TOOLBAR_BG,
-  TOOLBAR_BORDER,
-  BUTTON_BORDER,
-  BUTTON_ACTIVE_BG,
-  BUTTON_BG,
-  BUTTON_COLOR,
-  INFO_COLOR,
+  LABEL_BOLD,
+  LABEL_ITALIC,
+  LABEL_UNDERLINE,
+  LABEL_STRIKETHROUGH,
+  LABEL_UNDO,
+  LABEL_REDO,
+  LABEL_LINK,
+  LABEL_ALIGN_LEFT,
+  LABEL_ALIGN_CENTER,
+  LABEL_ALIGN_RIGHT,
+  FONT_OPTIONS,
+  SIZE_OPTIONS,
+  FORMAT_OPTIONS,
+  PALETTE_SVG,
 } from "../core/constants";
 
 export function injectToolbar(
@@ -64,9 +71,9 @@ export function injectToolbar(
   ) {
     const btn = doc.createElement("button");
     btn.type = "button";
-    // If caller provided inline SVG in `label`, it will be rendered as HTML.
-    // We still require callers to set an accessible `title`/`aria-label`.
-    if (label && label.trim().startsWith("<svg")) {
+    // If caller provided an HTML label (e.g. "<i>I</i>"), render it as HTML.
+    // Otherwise set textContent for safety.
+    if (label && label.trim().startsWith("<")) {
       btn.innerHTML = label;
     } else {
       btn.textContent = label;
@@ -115,99 +122,123 @@ export function injectToolbar(
     const label = doc.createElement("label");
     label.title = title;
     label.setAttribute("aria-label", title);
+    label.className = "color-input-label";
+    // Palette icon (inline SVG) placed before the native color input
+    // const icon = doc.createElement("span");
+    // icon.className = "color-palette-icon";
+    // icon.innerHTML = PALETTE_SVG;
     const input = doc.createElement("input");
     input.type = "color";
+    input.className = "toolbar-color-input";
     input.onchange = (e) => {
       options.onCommand(command, (e.target as HTMLInputElement).value);
     };
+    // label.appendChild(icon);
     label.appendChild(input);
     return label;
   }
 
   const format = options.getFormatState();
+  // Helpers: group wrapper and separator element
+  function makeGroup() {
+    const g = doc.createElement("div");
+    g.className = "toolbar-group";
+    return g;
+  }
 
-  // Inline SVG icons (use `currentColor` so icons match `BUTTON_COLOR`)
-  const ICON_BOLD =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7 6h5a3 3 0 0 1 0 6H7V6z" fill="currentColor"/><path d="M7 12h6a3 3 0 0 1 0 6H7v-6z" fill="currentColor" opacity="0.95"/></svg>';
-  const ICON_ITALIC =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 4h8v2h-3.5l-4.5 12H16v2H6v-2h3.5l4.5-12H10V4z" fill="currentColor"/></svg>';
-  const ICON_UNDERLINE =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 4v6a6 6 0 0 0 12 0V4h-2v6a4 4 0 0 1-8 0V4H6z" fill="currentColor"/><path d="M6 20h12v2H6v-2z" fill="currentColor"/></svg>';
-  const ICON_UNDO =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M9 7L4 12l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20 12a8 8 0 0 0-8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-  const ICON_REDO =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M15 7l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M4 12a8 8 0 0 0 8 8h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-  const ICON_LINK =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 14a3 3 0 0 1 0-4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M14 10a3 3 0 0 1 0 4l-1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>';
-  const ICON_ALIGN_LEFT =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="4" y="5" width="14" height="2" rx="1" fill="currentColor"/><rect x="4" y="9" width="10" height="2" rx="1" fill="currentColor"/><rect x="4" y="13" width="14" height="2" rx="1" fill="currentColor"/><rect x="4" y="17" width="10" height="2" rx="1" fill="currentColor"/></svg>';
-  const ICON_ALIGN_CENTER =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="5" y="5" width="14" height="2" rx="1" fill="currentColor"/><rect x="7" y="9" width="10" height="2" rx="1" fill="currentColor"/><rect x="5" y="13" width="14" height="2" rx="1" fill="currentColor"/><rect x="7" y="17" width="10" height="2" rx="1" fill="currentColor"/></svg>';
-  const ICON_ALIGN_RIGHT =
-    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="6" y="5" width="14" height="2" rx="1" fill="currentColor"/><rect x="8" y="9" width="10" height="2" rx="1" fill="currentColor"/><rect x="6" y="13" width="14" height="2" rx="1" fill="currentColor"/><rect x="8" y="17" width="10" height="2" rx="1" fill="currentColor"/></svg>';
+  function makeSep() {
+    const s = doc.createElement("div");
+    s.className = "toolbar-sep";
+    return s;
+  }
 
-  toolbar.appendChild(
-    makeButton(ICON_BOLD, "Bold", "bold", undefined, format.bold)
+  // Section 1: Undo / Redo
+  const undoBtn = makeButton(
+    LABEL_UNDO,
+    "Undo",
+    "undo",
+    undefined,
+    false,
+    !options.canUndo()
   );
-  toolbar.appendChild(
-    makeButton(ICON_ITALIC, "Italic", "italic", undefined, format.italic)
+  // Undo/Redo are handled by the history module — call handlers directly
+  undoBtn.onclick = () => options.onUndo();
+
+  const redoBtn = makeButton(
+    LABEL_REDO,
+    "Redo",
+    "redo",
+    undefined,
+    false,
+    !options.canRedo()
   );
-  toolbar.appendChild(
+  redoBtn.onclick = () => options.onRedo();
+
+  const grp1 = makeGroup();
+  grp1.appendChild(undoBtn);
+  grp1.appendChild(redoBtn);
+  toolbar.appendChild(grp1);
+  toolbar.appendChild(makeSep());
+
+  // Section 2: Format, Font & Size
+  const grp2 = makeGroup();
+  grp2.appendChild(makeSelect("Format", "formatBlock", FORMAT_OPTIONS));
+  grp2.appendChild(makeSelect("Font", "fontName", FONT_OPTIONS));
+  grp2.appendChild(makeSelect("Size", "fontSize", SIZE_OPTIONS));
+  toolbar.appendChild(grp2);
+  toolbar.appendChild(makeSep());
+
+  // Section 3: Bold, Italic, Underline, Strikethrough
+  const grp3 = makeGroup();
+  grp3.appendChild(
+    makeButton(LABEL_BOLD, "Bold", "bold", undefined, format.bold)
+  );
+  grp3.appendChild(
+    makeButton(LABEL_ITALIC, "Italic", "italic", undefined, format.italic)
+  );
+  grp3.appendChild(
     makeButton(
-      ICON_UNDERLINE,
+      LABEL_UNDERLINE,
       "Underline",
       "underline",
       undefined,
       format.underline
     )
   );
+  grp3.appendChild(makeButton(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  toolbar.appendChild(grp3);
+  toolbar.appendChild(makeSep());
 
-  toolbar.appendChild(
-    makeSelect("Font", "fontName", [
-      { label: "Arial", value: "Arial" },
-      { label: "Georgia", value: "Georgia" },
-      { label: "Times New Roman", value: "Times New Roman" },
-      { label: "Courier New", value: "Courier New" },
-      { label: "Tahoma", value: "Tahoma" },
-    ])
+  // Section 4: Alignment
+  const grp4 = makeGroup();
+  grp4.appendChild(makeButton(LABEL_ALIGN_LEFT, "Align left", "align", "left"));
+  grp4.appendChild(
+    makeButton(LABEL_ALIGN_CENTER, "Align center", "align", "center")
   );
-  toolbar.appendChild(
-    makeSelect("Size", "fontSize", [
-      { label: "Small", value: "2" },
-      { label: "Normal", value: "3" },
-      { label: "Medium", value: "4" },
-      { label: "Large", value: "5" },
-      { label: "XL", value: "6" },
-    ])
+  grp4.appendChild(
+    makeButton(LABEL_ALIGN_RIGHT, "Align right", "align", "right")
   );
+  toolbar.appendChild(grp4);
+  toolbar.appendChild(makeSep());
 
-  toolbar.appendChild(
-    makeButton(ICON_UNDO, "Undo", "undo", undefined, false, !options.canUndo())
-  );
-  toolbar.appendChild(
-    makeButton(ICON_REDO, "Redo", "redo", undefined, false, !options.canRedo())
-  );
+  // Section 5: Colors
+  const grp5 = makeGroup();
+  grp5.appendChild(makeColorInput("Text color", "foreColor"));
+  grp5.appendChild(makeColorInput("Highlight color", "hiliteColor"));
+  toolbar.appendChild(grp5);
+  toolbar.appendChild(makeSep());
 
-  toolbar.appendChild(makeButton(ICON_LINK, "Insert link", "link"));
-  toolbar.appendChild(makeColorInput("Text color", "foreColor"));
-  toolbar.appendChild(makeColorInput("Highlight color", "hiliteColor"));
+  // Section 6: Link
+  const grp6 = makeGroup();
+  grp6.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
+  toolbar.appendChild(grp6);
 
-  toolbar.appendChild(
-    makeButton(ICON_ALIGN_LEFT, "Align left", "align", "left")
-  );
-  toolbar.appendChild(
-    makeButton(ICON_ALIGN_CENTER, "Align center", "align", "center")
-  );
-  toolbar.appendChild(
-    makeButton(ICON_ALIGN_RIGHT, "Align right", "align", "right")
-  );
-
-  const info = doc.createElement("span");
-  // Info styles moved to stylesheet
-  info.textContent = options.getSelectedElementInfo()
-    ? `Selected: ${options.getSelectedElementInfo()}`
-    : "Click any highlighted element to edit";
-  toolbar.appendChild(info);
+  // const info = doc.createElement("span");
+  // // Info styles moved to stylesheet
+  // info.textContent = options.getSelectedElementInfo()
+  //   ? `Selected: ${options.getSelectedElementInfo()}`
+  //   : "Click any highlighted element to edit";
+  // toolbar.appendChild(info);
 
   // Keyboard navigation for toolbar (ArrowLeft/ArrowRight/Home/End)
   toolbar.addEventListener("keydown", (e) => {

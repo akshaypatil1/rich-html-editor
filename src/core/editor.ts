@@ -16,6 +16,12 @@ import { computeFormatState, getElementLabel } from "../dom/format";
 import { handleUndo, handleRedo, handleToolbarCommand } from "./commands";
 import type { EditorConfig } from "./types";
 import { sanitizeHtml } from "../utils/sanitize";
+import {
+  TOOLBAR_ID,
+  STYLE_ID,
+  CLASS_EDITABLE,
+  CLASS_ACTIVE,
+} from "./constants";
 
 /**
  * Initialize the rich HTML editor on an iframe element
@@ -108,7 +114,36 @@ export function getCleanHTML(): string {
     if (!doc.documentElement) {
       throw new Error("Document is missing documentElement");
     }
-    return "<!doctype html>\n" + doc.documentElement.outerHTML;
+    // Clone the document element and strip injected UI and editing attributes
+    const clone = doc.documentElement.cloneNode(true) as HTMLElement;
+
+    // Remove injected toolbar and style elements if present
+    const toolbarNode = clone.querySelector(`#${TOOLBAR_ID}`);
+    if (toolbarNode && toolbarNode.parentNode)
+      toolbarNode.parentNode.removeChild(toolbarNode);
+    const styleNode = clone.querySelector(`#${STYLE_ID}`);
+    if (styleNode && styleNode.parentNode)
+      styleNode.parentNode.removeChild(styleNode);
+
+    // Remove editor-specific attributes/classes from cloned nodes so the
+    // resulting HTML is static (no contenteditable, no active/editable classes)
+    const editableNodes = clone.querySelectorAll(
+      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
+    );
+    editableNodes.forEach((el) => {
+      try {
+        if (el instanceof Element) {
+          if (el.hasAttribute("contenteditable"))
+            el.removeAttribute("contenteditable");
+          if (el.hasAttribute("tabindex")) el.removeAttribute("tabindex");
+          el.classList.remove(CLASS_EDITABLE, CLASS_ACTIVE);
+        }
+      } catch (e) {
+        // ignore any removal errors on read-only or unexpected nodes
+      }
+    });
+
+    return "<!doctype html>\n" + clone.outerHTML;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[rich-html-editor] Failed to get clean HTML:", message);

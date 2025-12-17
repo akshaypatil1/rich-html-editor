@@ -101,6 +101,28 @@ export function injectStyles(doc: Document): void {
   width: 16px;
   height: 16px;
   display: block;
+  /* Default: use stroke icons (outline) so they look like Phosphor regular */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+/* Active/pressed: switch to filled appearance */
+#${TOOLBAR_ID} button[aria-pressed="true"] svg{
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Focus and accessibility */
+#${TOOLBAR_ID} button:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+
+/* Disabled state */
+#${TOOLBAR_ID} button:disabled{
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 `;
   if (!styleEl) {

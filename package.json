@@ -1,0 +1,61 @@
+{
+  "name": "rich-html-editor",
+  "version": "0.1.0",
+  "description": "Framework-agnostic rich HTML editor",
+  "author": "akshaypatil1",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshaypatil1/rich-html-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/akshaypatil1/rich-html-editor/issues"
+  },
+  "homepage": "https://github.com/akshaypatil1/rich-html-editor#readme",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "rich-editor",
+    "html-editor",
+    "wysiwyg",
+    "framework-agnostic",
+    "vanilla-js"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsup",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitest/coverage-v8": "^4.0.15",
+    "axe-core": "^4.10.0",
+    "jsdom": "^27.3.0",
+    "rimraf": "^5.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.15"
+  },
+  "dependencies": {
+    "dompurify": "^3.3.1"
+  }
+}

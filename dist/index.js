@@ -505,6 +505,9 @@ function injectStyles(doc) {
   font-family: inherit;
   box-shadow: 0 6px 18px rgba(2,6,23,0.08);
   backdrop-filter: blur(6px);
+  /* Allow toolbar items to wrap onto multiple lines on narrow screens */
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 #${TOOLBAR_ID} button{
   padding: 6px 8px;
@@ -638,6 +641,40 @@ function injectStyles(doc) {
   align-items: center;
   gap: 6px;
 }
+#${TOOLBAR_ID} .toolbar-group{
+  /* groups may wrap internally to avoid overflow on narrow screens */
+  flex-wrap: wrap;
+}
+/* Overflow button + menu styling */
+#${TOOLBAR_ID} .toolbar-overflow-btn{
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid ${BUTTON_BORDER};
+  background: ${BUTTON_BG};
+  color: ${BUTTON_COLOR};
+  font-weight: 600;
+}
+#${TOOLBAR_ID} .toolbar-overflow-menu{
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 12px;
+  min-width: 160px;
+  background: #fff;
+  border: 1px solid rgba(15,23,42,0.06);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 12px 40px rgba(2,6,23,0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 10000;
+}
+#${TOOLBAR_ID} .toolbar-overflow-menu[hidden]{
+  display: none;
+}
 #${TOOLBAR_ID} .toolbar-sep{
   width: 1px;
   height: 28px;
@@ -671,6 +708,49 @@ function injectStyles(doc) {
 #${TOOLBAR_ID} button:disabled{
   opacity: 0.48;
   cursor: not-allowed;
+}
+/* Responsive tweaks: reduce spacing and allow horizontal scroll on very small screens */
+@media (max-width: 720px){
+  #${TOOLBAR_ID}{
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  #${TOOLBAR_ID} button,
+  #${TOOLBAR_ID} select,
+  #${TOOLBAR_ID} input[type="color"]{
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+  /* Hide visual separators to save horizontal space */
+  #${TOOLBAR_ID} .toolbar-sep{
+    display: none;
+  }
+  /* Collapse labeled color text visually but preserve accessibility on the input */
+  #${TOOLBAR_ID} .color-label{
+    font-size: 0;
+  }
+  #${TOOLBAR_ID} .color-label input{
+    font-size: initial;
+  }
+}
+@media (max-width: 420px){
+  /* On very small screens prefer a single-line scrollable toolbar */
+  #${TOOLBAR_ID}{
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #${TOOLBAR_ID} .toolbar-group{
+    flex: 0 0 auto;
+  }
+  #${TOOLBAR_ID} button{ margin-right: 6px; }
+  /* Show overflow button and hide the groups marked for collapse */
+  #${TOOLBAR_ID} .toolbar-overflow-btn{
+    display: inline-flex;
+  }
+  #${TOOLBAR_ID} .collapse-on-small{
+    display: none;
+  }
 }
 `;
   if (!styleEl) {
@@ -830,6 +910,7 @@ function injectToolbar(doc, options) {
   toolbar.appendChild(grp1);
   toolbar.appendChild(makeSep());
   const grp2 = makeGroup();
+  grp2.className = "toolbar-group collapse-on-small";
   grp2.appendChild(
     makeSelect(
       "Format",
@@ -876,6 +957,7 @@ function injectToolbar(doc, options) {
   toolbar.appendChild(grp4);
   toolbar.appendChild(makeSep());
   const grp5 = makeGroup();
+  grp5.className = "toolbar-group collapse-on-small";
   grp5.appendChild(
     makeColorInput("Text color", "foreColor", format.foreColor)
   );
@@ -889,8 +971,91 @@ function injectToolbar(doc, options) {
   toolbar.appendChild(grp5);
   toolbar.appendChild(makeSep());
   const grp6 = makeGroup();
+  grp6.className = "toolbar-group collapse-on-small";
   grp6.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
   toolbar.appendChild(grp6);
+  const overflowBtn = doc.createElement("button");
+  overflowBtn.type = "button";
+  overflowBtn.className = "toolbar-overflow-btn";
+  overflowBtn.title = "More";
+  overflowBtn.setAttribute("aria-label", "More toolbar actions");
+  overflowBtn.setAttribute("aria-haspopup", "true");
+  overflowBtn.setAttribute("aria-expanded", "false");
+  overflowBtn.tabIndex = 0;
+  overflowBtn.innerHTML = "\u22EF";
+  const overflowMenu = doc.createElement("div");
+  overflowMenu.className = "toolbar-overflow-menu";
+  overflowMenu.setAttribute("role", "menu");
+  overflowMenu.hidden = true;
+  function openOverflow() {
+    overflowMenu.hidden = false;
+    overflowBtn.setAttribute("aria-expanded", "true");
+    const first = overflowMenu.querySelector(
+      "button, select, input"
+    );
+    first == null ? void 0 : first.focus();
+  }
+  function closeOverflow() {
+    overflowMenu.hidden = true;
+    overflowBtn.setAttribute("aria-expanded", "false");
+    overflowBtn.focus();
+  }
+  overflowBtn.addEventListener("click", (e) => {
+    if (overflowMenu.hidden) openOverflow();
+    else closeOverflow();
+  });
+  overflowBtn.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (overflowMenu.hidden) openOverflow();
+      else closeOverflow();
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (overflowMenu.hidden) openOverflow();
+    }
+  });
+  overflowMenu.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeOverflow();
+    }
+  });
+  doc.addEventListener("pointerdown", (ev) => {
+    if (!overflowMenu.hidden && !overflowMenu.contains(ev.target) && ev.target !== overflowBtn) {
+      closeOverflow();
+    }
+  });
+  overflowMenu.appendChild(
+    makeSelect(
+      "Format",
+      "formatBlock",
+      FORMAT_OPTIONS,
+      format.formatBlock
+    )
+  );
+  overflowMenu.appendChild(
+    makeSelect("Font", "fontName", FONT_OPTIONS, format.fontName)
+  );
+  overflowMenu.appendChild(
+    makeSelect("Size", "fontSize", SIZE_OPTIONS, format.fontSize)
+  );
+  overflowMenu.appendChild(
+    makeColorInput("Text color", "foreColor", format.foreColor)
+  );
+  overflowMenu.appendChild(
+    makeColorInput(
+      "Highlight color",
+      "hiliteColor",
+      format.hiliteColor
+    )
+  );
+  overflowMenu.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
+  const overflowWrap = makeGroup();
+  overflowWrap.className = "toolbar-group toolbar-overflow-wrap";
+  overflowWrap.appendChild(overflowBtn);
+  overflowWrap.appendChild(overflowMenu);
+  toolbar.appendChild(overflowWrap);
   toolbar.addEventListener("keydown", (e) => {
     const focusable = Array.from(
       toolbar.querySelectorAll("button, select, input, [tabindex]")

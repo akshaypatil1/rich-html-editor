@@ -25,21 +25,6 @@ import {
 
 /**
  * Initialize the rich HTML editor on an iframe element
- *
- * Sets up:
- * - State management (undo/redo stacks, current editable element)
- * - DOM styles for editable element highlighting
- * - Event handlers for click, selection change, and input events
- * - Toolbar UI with formatting buttons
- *
- * @param iframe - The target iframe element to enable editing on
- * @throws {Error} If iframe is invalid or contentDocument is not accessible
- *
- * @example
- * ```typescript
- * const iframe = document.querySelector('iframe');
- * initRichEditor(iframe);
- * ```
  */
 export function initRichEditor(
   iframe: HTMLIFrameElement,
@@ -63,7 +48,6 @@ export function initRichEditor(
     _setRedoStack([]);
     _setCurrentEditable(null);
     if (config?.maxStackSize) {
-      // lazy set max stack size if provided (non-blocking)
       import("./state")
         .then((m) => m.setMaxStackSize(config.maxStackSize!))
         .catch(() => {
@@ -88,20 +72,6 @@ export function initRichEditor(
   }
 }
 
-/**
- * Get the cleaned HTML content from the edited document
- *
- * Returns the full HTML document with proper DOCTYPE declaration
- *
- * @returns HTML string with DOCTYPE, or empty string if editor not initialized
- * @throws {Error} If document is not properly initialized
- *
- * @example
- * ```typescript
- * const html = getCleanHTML();
- * console.log(html); // <!doctype html>\n<html>...</html>
- * ```
- */
 export function getCleanHTML(): string {
   try {
     const doc = _getDoc();
@@ -114,7 +84,7 @@ export function getCleanHTML(): string {
     if (!doc.documentElement) {
       throw new Error("Document is missing documentElement");
     }
-    // Clone the document element and strip injected UI and editing attributes
+
     const clone = doc.documentElement.cloneNode(true) as HTMLElement;
 
     // Remove injected toolbar and style elements if present
@@ -125,24 +95,119 @@ export function getCleanHTML(): string {
     if (styleNode && styleNode.parentNode)
       styleNode.parentNode.removeChild(styleNode);
 
-    // Remove editor-specific attributes/classes from cloned nodes so the
-    // resulting HTML is static (no contenteditable, no active/editable classes)
-    const editableNodes = clone.querySelectorAll(
-      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
-    );
-    editableNodes.forEach((el) => {
-      try {
-        if (el instanceof Element) {
+    // Recursively clean root and descendants
+    try {
+      const cleanElement = (el: Element) => {
+        try {
+          // remove boolean/content attributes explicitly
           if (el.hasAttribute("contenteditable"))
             el.removeAttribute("contenteditable");
           if (el.hasAttribute("tabindex")) el.removeAttribute("tabindex");
-          el.classList.remove(CLASS_EDITABLE, CLASS_ACTIVE);
+        } catch (e) {
+          /* ignore */
         }
-      } catch (e) {
-        // ignore any removal errors on read-only or unexpected nodes
-      }
-    });
 
+        try {
+          const attrs = Array.from(el.attributes || []);
+          attrs.forEach((a) => {
+            const rawName = a.name;
+            const name = rawName.toLowerCase();
+
+            // remove inline event handlers
+            if (name.startsWith("on")) {
+              try {
+                el.removeAttribute(rawName);
+              } catch (e) {
+                /* ignore */
+              }
+              return;
+            }
+
+            // remove any data-rhe-* attributes (including data-rhe-id)
+            if (
+              name === "data-rhe-id" ||
+              name.startsWith("data-rhe-") ||
+              name === "data-rhe"
+            ) {
+              try {
+                el.removeAttribute(rawName);
+              } catch (e) {
+                /* ignore */
+              }
+              return;
+            }
+          });
+        } catch (e) {
+          /* ignore */
+        }
+
+        try {
+          if (el.id) {
+            const id = el.id;
+            if (
+              id === TOOLBAR_ID ||
+              id === STYLE_ID ||
+              id.startsWith("editor-") ||
+              id.startsWith("rhe-")
+            ) {
+              el.removeAttribute("id");
+            }
+          }
+        } catch (e) {
+          /* ignore */
+        }
+
+        try {
+          const cls = Array.from(el.classList || []);
+          cls.forEach((c) => {
+            if (
+              c === CLASS_EDITABLE ||
+              c === CLASS_ACTIVE ||
+              c.startsWith("editor-") ||
+              c.startsWith("rhe-")
+            ) {
+              try {
+                el.classList.remove(c);
+              } catch (e) {
+                /* ignore */
+              }
+            }
+          });
+
+          // remove empty class attributes left behind
+          if (
+            el.hasAttribute("class") &&
+            (el.getAttribute("class") || "").trim() === ""
+          ) {
+            try {
+              el.removeAttribute("class");
+            } catch (e) {
+              /* ignore */
+            }
+          }
+        } catch (e) {
+          /* ignore */
+        }
+
+        try {
+          const children = Array.from(el.children || []);
+          children.forEach((child) => cleanElement(child as Element));
+        } catch (e) {
+          /* ignore */
+        }
+      };
+
+      // `instanceof Element` can fail across window/iframe boundaries
+      // because each iframe has its own global `Element` constructor.
+      // Use a cross-realm-safe check instead.
+      if ((clone as Node).nodeType === Node.ELEMENT_NODE) {
+        cleanElement(clone as Element);
+      }
+    } catch (e) {
+      /* ignore traversal errors */
+    }
+
+    // Preserve original scripts intentionally.
     return "<!doctype html>\n" + clone.outerHTML;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -151,10 +216,6 @@ export function getCleanHTML(): string {
   }
 }
 
-/**
- * Get a sanitized HTML string suitable for exporting to untrusted contexts.
- * This will run the same sanitizer used for snapshots/restores.
- */
 export function getSanitizedHTML(): string {
   try {
     const doc = _getDoc();

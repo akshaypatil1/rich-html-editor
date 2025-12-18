@@ -113,9 +113,9 @@ var init_constants = __esm({
     LABEL_ITALIC = "<i>I</i>";
     LABEL_UNDERLINE = "<u>U</u>";
     LABEL_STRIKETHROUGH = "<s>S</s>";
-    LABEL_UNDO = "Undo";
-    LABEL_REDO = "Redo";
-    LABEL_LINK = "Link";
+    LABEL_UNDO = "\u21BA";
+    LABEL_REDO = "\u21BB";
+    LABEL_LINK = "\u{1F517}";
     LABEL_ALIGN_LEFT = `
 	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 		<rect x="1" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
@@ -142,10 +142,40 @@ var init_constants = __esm({
 `;
     FONT_OPTIONS = [
       { label: "Arial", value: "Arial" },
-      { label: "Georgia", value: "Georgia" },
-      { label: "Times New Roman", value: "Times New Roman" },
-      { label: "Courier New", value: "Courier New" },
-      { label: "Tahoma", value: "Tahoma" }
+      { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+      { label: "Verdana", value: "Verdana, Geneva, sans-serif" },
+      { label: "Tahoma", value: "Tahoma, Geneva, sans-serif" },
+      { label: "Trebuchet MS", value: "Trebuchet MS, Helvetica, sans-serif" },
+      { label: "Georgia", value: "Georgia, serif" },
+      { label: "Times New Roman", value: "Times New Roman, Times, serif" },
+      { label: "Palatino", value: "Palatino, 'Palatino Linotype', serif" },
+      { label: "Garamond", value: "Garamond, serif" },
+      { label: "Book Antiqua", value: "'Book Antiqua', Palatino, serif" },
+      { label: "Courier New", value: "'Courier New', Courier, monospace" },
+      { label: "Lucida Console", value: "'Lucida Console', Monaco, monospace" },
+      { label: "Impact", value: "Impact, Charcoal, sans-serif" },
+      { label: "Comic Sans MS", value: "'Comic Sans MS', 'Comic Sans', cursive" },
+      { label: "Segoe UI", value: "'Segoe UI', Tahoma, Geneva, sans-serif" },
+      {
+        label: "Roboto",
+        value: "Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+      },
+      { label: "Open Sans", value: "'Open Sans', Arial, sans-serif" },
+      { label: "Lato", value: "Lato, 'Helvetica Neue', Arial, sans-serif" },
+      { label: "Montserrat", value: "Montserrat, Arial, sans-serif" },
+      { label: "Source Sans Pro", value: "'Source Sans Pro', Arial, sans-serif" },
+      { label: "Fira Sans", value: "'Fira Sans', Arial, sans-serif" },
+      { label: "Ubuntu", value: "Ubuntu, Arial, sans-serif" },
+      { label: "Noto Sans", value: "'Noto Sans', Arial, sans-serif" },
+      { label: "Droid Sans", value: "'Droid Sans', Arial, sans-serif" },
+      {
+        label: "Helvetica Neue",
+        value: "'Helvetica Neue', Helvetica, Arial, sans-serif"
+      },
+      {
+        label: "System UI",
+        value: "system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+      }
     ];
     SIZE_OPTIONS = [
       { label: "8", value: "8" },
@@ -190,6 +220,17 @@ function sanitizeHtml(html, ctx) {
   if (win) {
     try {
       const DOMPurify = (0, import_dompurify.default)(win);
+      try {
+        DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+          try {
+            if (data && data.attrName && data.attrName.startsWith("data-")) {
+              data.keepAttr = true;
+            }
+          } catch (e) {
+          }
+        });
+      } catch (e) {
+      }
       return DOMPurify.sanitize(html, {
         // Use sensible defaults: allow common formatting tags but strip scripts
         ALLOWED_TAGS: [
@@ -202,6 +243,33 @@ function sanitizeHtml(html, ctx) {
           "p",
           "div",
           "span",
+          // Common semantic elements: preserve document structure so undo/redo
+          // does not flatten header/section/nav into plain content.
+          "header",
+          "nav",
+          "section",
+          "main",
+          "footer",
+          "article",
+          "aside",
+          "figure",
+          "figcaption",
+          "time",
+          // Interactive / form elements that may appear in content
+          "button",
+          "input",
+          "label",
+          "select",
+          "option",
+          "textarea",
+          "details",
+          "summary",
+          // Allow <style> tags so user/content-provided CSS is preserved
+          // when taking snapshots and during undo/redo operations.
+          // DOMPurify will still sanitize the contents of style blocks.
+          "style",
+          // Preserve linked stylesheets so page/editor styling isn't lost
+          "link",
           "ul",
           "ol",
           "li",
@@ -218,7 +286,20 @@ function sanitizeHtml(html, ctx) {
           "h6",
           "img"
         ],
-        ALLOWED_ATTR: ["href", "title", "alt", "src", "class", "style"]
+        ALLOWED_ATTR: [
+          "href",
+          "title",
+          "alt",
+          "src",
+          "class",
+          "style",
+          // Attributes used by <link> tags
+          "rel",
+          "type",
+          "media"
+        ],
+        // Also allow `id` attributes so element ids survive sanitization.
+        ADD_ATTR: ["id"]
       });
     } catch (e) {
     }
@@ -295,6 +376,61 @@ function pushStandaloneSnapshot(clearRedo = true) {
   const styleNode = clone.querySelector(`#${STYLE_ID}`);
   if (styleNode && styleNode.parentNode)
     styleNode.parentNode.removeChild(styleNode);
+  try {
+    const editableNodes = clone.querySelectorAll(
+      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
+    );
+    editableNodes.forEach((el) => {
+      try {
+        if (el instanceof Element) {
+          if (el.hasAttribute("contenteditable"))
+            el.removeAttribute("contenteditable");
+          if (el.hasAttribute("tabindex")) el.removeAttribute("tabindex");
+          el.classList.remove(CLASS_EDITABLE, CLASS_ACTIVE);
+        }
+      } catch (e) {
+      }
+    });
+  } catch (e) {
+  }
+  try {
+    const scripts = Array.from(
+      clone.querySelectorAll("script")
+    );
+    scripts.forEach((s) => {
+      var _a;
+      try {
+        const code = s.textContent || "";
+        const attrs = {};
+        Array.from(s.attributes).forEach((a) => attrs[a.name] = a.value);
+        const placeholder = clone.ownerDocument.createElement("span");
+        try {
+          const safe = typeof btoa !== "undefined" ? btoa(unescape(encodeURIComponent(code))) : encodeURIComponent(code);
+          placeholder.setAttribute("data-rhe-script", safe);
+        } catch (e) {
+          placeholder.setAttribute("data-rhe-script", encodeURIComponent(code));
+        }
+        if (Object.keys(attrs).length) {
+          placeholder.setAttribute(
+            "data-rhe-script-attrs",
+            encodeURIComponent(JSON.stringify(attrs))
+          );
+        }
+        const parentMarker = s.closest("[data-rhe-id]");
+        if (parentMarker && parentMarker.getAttribute("data-rhe-id")) {
+          placeholder.setAttribute(
+            "data-rhe-script-parent",
+            parentMarker.getAttribute("data-rhe-id")
+          );
+        } else {
+          placeholder.setAttribute("data-rhe-script-parent", "head");
+        }
+        (_a = s.parentNode) == null ? void 0 : _a.replaceChild(placeholder, s);
+      } catch (e) {
+      }
+    });
+  } catch (e) {
+  }
   const snapRaw = clone.outerHTML;
   const snap = sanitizeHtml(snapRaw, _doc);
   if (!_undoStack.length || _undoStack[_undoStack.length - 1] !== snap) {
@@ -391,15 +527,107 @@ function injectStyles(doc) {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(2,6,23,0.08);
 }
-#${TOOLBAR_ID} select, #${TOOLBAR_ID} input[type="color"]{
+#${TOOLBAR_ID} select{
   padding: 6px 8px;
   border-radius: 8px;
   border: 1px solid ${BUTTON_BORDER};
   background: #fff;
   font-family: inherit;
 }
+#${TOOLBAR_ID} input[type="color"]{
+  border-radius: 8px;
+  border: 1px solid ${BUTTON_BORDER};
+  background: #fff;
+  font-family: inherit;
+}
+#${TOOLBAR_ID} .color-input-label{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+/* Labeled color inputs (e.g. "Text Color <input type=color>") */
+#${TOOLBAR_ID} .color-label{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+#${TOOLBAR_ID} .color-input-label .color-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#${TOOLBAR_ID} .text-color-icon{
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-block;
+  padding-bottom: 2px;
+  border-bottom: 3px solid currentColor;
+  transform-origin: center;
+}
+#${TOOLBAR_ID} .highlight-icon{
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+}
+#${TOOLBAR_ID} .color-icon svg{
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+/* Text color wrapper: A with a small swatch on the right */
+#${TOOLBAR_ID} .text-color-wrapper{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+#${TOOLBAR_ID} .text-color-wrapper .text-A{
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+#${TOOLBAR_ID} .text-color-wrapper .color-swatch{
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset;
+  background: currentColor;
+}
+
+/* Highlight wrapper: small colored bar under/behind the A to mimic highlighter */
+#${TOOLBAR_ID} .highlight-wrapper{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+#${TOOLBAR_ID} .highlight-wrapper .highlight-bar{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 8px;
+  border-radius: 3px;
+  background: #ffeb3b; /* default yellow */
+  z-index: 0;
+}
+#${TOOLBAR_ID} .highlight-wrapper .text-A{
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+}
 #${TOOLBAR_ID} span{
-  margin-left: 16px;
   color: ${INFO_COLOR};
   font-size: 90%;
 }
@@ -424,16 +652,13 @@ function injectStyles(doc) {
   width: 16px;
   height: 16px;
   display: block;
-  /* Default: use stroke icons (outline) so they look like Phosphor regular */
+  /* Default icon appearance */
   fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
 }
 
 /* Active/pressed: switch to filled appearance */
 #${TOOLBAR_ID} button[aria-pressed="true"] svg{
   fill: currentColor;
-  stroke: none;
 }
 
 /* Focus and accessibility */
@@ -488,13 +713,17 @@ function injectToolbar(doc, options) {
     });
     return btn;
   }
-  function makeSelect(title, command, optionsList) {
+  function makeSelect(title, command, optionsList, initialValue) {
     const select = doc.createElement("select");
     select.title = title;
     select.setAttribute("aria-label", title);
     select.appendChild(new Option(title, "", true, true));
     for (const opt of optionsList) {
       select.appendChild(new Option(opt.label, opt.value));
+    }
+    try {
+      if (initialValue) select.value = initialValue;
+    } catch (e) {
     }
     select.onchange = (e) => {
       const val = e.target.value;
@@ -503,19 +732,68 @@ function injectToolbar(doc, options) {
     };
     return select;
   }
-  function makeColorInput(title, command) {
-    const label = doc.createElement("label");
-    label.title = title;
-    label.setAttribute("aria-label", title);
-    label.className = "color-input-label";
+  function makeColorInput(title, command, initialColor) {
     const input = doc.createElement("input");
     input.type = "color";
     input.className = "toolbar-color-input";
+    const wrapper = doc.createElement("label");
+    wrapper.className = "color-label";
+    wrapper.appendChild(doc.createTextNode(title + " "));
+    wrapper.appendChild(input);
+    let savedRange = null;
+    input.addEventListener("pointerdown", () => {
+      const s = doc.getSelection();
+      if (s && s.rangeCount) savedRange = s.getRangeAt(0).cloneRange();
+    });
     input.onchange = (e) => {
+      try {
+        const s = doc.getSelection();
+        if (savedRange && s) {
+          s.removeAllRanges();
+          s.addRange(savedRange);
+        }
+      } catch (err) {
+      }
       options.onCommand(command, e.target.value);
+      savedRange = null;
     };
-    label.appendChild(input);
-    return label;
+    function rgbToHex(input2) {
+      if (!input2) return null;
+      const v = input2.trim();
+      if (v.startsWith("#")) {
+        if (v.length === 4) {
+          return ("#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3]).toLowerCase();
+        }
+        return v.toLowerCase();
+      }
+      const rgbMatch = v.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (rgbMatch) {
+        const r = Number(rgbMatch[1]);
+        const g = Number(rgbMatch[2]);
+        const b = Number(rgbMatch[3]);
+        const hex = "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("").toLowerCase();
+        return hex;
+      }
+      return null;
+    }
+    const setColor = (val) => {
+      if (!val) return;
+      const hex = rgbToHex(val) || val;
+      try {
+        if (hex && hex.startsWith("#") && input.value !== hex) {
+          input.value = hex;
+        }
+      } catch (e) {
+      }
+    };
+    if (initialColor) setColor(initialColor);
+    input.addEventListener("input", (e) => {
+      const val = e.target.value;
+      setColor(val);
+    });
+    input.title = title;
+    input.setAttribute("aria-label", title);
+    return wrapper;
   }
   const format = options.getFormatState();
   function makeGroup() {
@@ -552,9 +830,20 @@ function injectToolbar(doc, options) {
   toolbar.appendChild(grp1);
   toolbar.appendChild(makeSep());
   const grp2 = makeGroup();
-  grp2.appendChild(makeSelect("Format", "formatBlock", FORMAT_OPTIONS));
-  grp2.appendChild(makeSelect("Font", "fontName", FONT_OPTIONS));
-  grp2.appendChild(makeSelect("Size", "fontSize", SIZE_OPTIONS));
+  grp2.appendChild(
+    makeSelect(
+      "Format",
+      "formatBlock",
+      FORMAT_OPTIONS,
+      format.formatBlock
+    )
+  );
+  grp2.appendChild(
+    makeSelect("Font", "fontName", FONT_OPTIONS, format.fontName)
+  );
+  grp2.appendChild(
+    makeSelect("Size", "fontSize", SIZE_OPTIONS, format.fontSize)
+  );
   toolbar.appendChild(grp2);
   toolbar.appendChild(makeSep());
   const grp3 = makeGroup();
@@ -587,8 +876,16 @@ function injectToolbar(doc, options) {
   toolbar.appendChild(grp4);
   toolbar.appendChild(makeSep());
   const grp5 = makeGroup();
-  grp5.appendChild(makeColorInput("Text color", "foreColor"));
-  grp5.appendChild(makeColorInput("Highlight color", "hiliteColor"));
+  grp5.appendChild(
+    makeColorInput("Text color", "foreColor", format.foreColor)
+  );
+  grp5.appendChild(
+    makeColorInput(
+      "Highlight color",
+      "hiliteColor",
+      format.hiliteColor
+    )
+  );
   toolbar.appendChild(grp5);
   toolbar.appendChild(makeSep());
   const grp6 = makeGroup();
@@ -643,20 +940,78 @@ function isEditableCandidate(el) {
 
 // src/dom/format.ts
 function computeFormatState(doc) {
-  var _a;
+  var _a, _b;
   try {
     const s = doc.getSelection();
     let el = null;
     if (s && s.anchorNode)
       el = s.anchorNode.nodeType === Node.ELEMENT_NODE ? s.anchorNode : s.anchorNode.parentElement;
-    if (!el) return { bold: false, italic: false, underline: false };
+    if (!el)
+      return {
+        bold: false,
+        italic: false,
+        underline: false,
+        foreColor: null,
+        hiliteColor: null,
+        fontName: null,
+        fontSize: null,
+        formatBlock: null
+      };
     const computed = (_a = doc.defaultView) == null ? void 0 : _a.getComputedStyle(el);
     const bold = !!(el.closest("strong, b") || computed && (computed.fontWeight === "700" || Number(computed.fontWeight) >= 700));
     const italic = !!(el.closest("em, i") || computed && computed.fontStyle === "italic");
     const underline = !!(el.closest("u") || computed && (computed.textDecorationLine || "").includes("underline"));
-    return { bold, italic, underline };
+    const foreColor = ((_b = el.closest("font[color]")) == null ? void 0 : _b.getAttribute(
+      "color"
+    )) || computed && computed.color || null;
+    const mark = el.closest("mark");
+    const hiliteColor = mark && (mark.getAttribute("style") || "") || (computed && computed.backgroundColor && computed.backgroundColor !== "rgba(0, 0, 0, 0)" ? computed.backgroundColor : null);
+    const fontName = computed && computed.fontFamily || null;
+    const fontSize = computed && computed.fontSize || null;
+    let blockEl = el;
+    while (blockEl && blockEl.parentElement) {
+      const tag = blockEl.tagName;
+      if ([
+        "P",
+        "DIV",
+        "SECTION",
+        "ARTICLE",
+        "LI",
+        "TD",
+        "BLOCKQUOTE",
+        "H1",
+        "H2",
+        "H3",
+        "H4",
+        "H5",
+        "H6"
+      ].includes(tag)) {
+        break;
+      }
+      blockEl = blockEl.parentElement;
+    }
+    const formatBlock = blockEl ? blockEl.tagName.toLowerCase() : null;
+    return {
+      bold,
+      italic,
+      underline,
+      foreColor,
+      hiliteColor,
+      fontName,
+      fontSize,
+      formatBlock
+    };
   } catch (err) {
-    return { bold: false, italic: false, underline: false };
+    return {
+      bold: false,
+      italic: false,
+      underline: false,
+      foreColor: null,
+      hiliteColor: null,
+      fontName: null,
+      fontSize: null,
+      formatBlock: null
+    };
   }
 }
 function getElementLabel(el) {
@@ -704,7 +1059,119 @@ function handleUndo() {
       throw new Error("Document is missing documentElement");
     }
     const safe = sanitizeHtml(prev.replace(/^<!doctype html>\n?/i, ""), doc);
-    doc.documentElement.innerHTML = safe;
+    try {
+      const parser = new DOMParser();
+      const parsed = parser.parseFromString(safe, "text/html");
+      if (parsed && parsed.body && doc.body) {
+        const parsedEls = parsed.body.querySelectorAll("[data-rhe-id]");
+        if (parsedEls && parsedEls.length) {
+          const loadPromises = [];
+          parsedEls.forEach((pe) => {
+            const id = pe.getAttribute("data-rhe-id");
+            if (!id) return;
+            const local = doc.body.querySelector(`[data-rhe-id="${id}"]`);
+            if (!local) return;
+            try {
+              Array.from(local.attributes).forEach((a) => {
+                if (a.name !== "data-rhe-id") local.removeAttribute(a.name);
+              });
+              Array.from(pe.attributes).forEach((a) => {
+                if (a.name !== "data-rhe-id")
+                  local.setAttribute(a.name, a.value);
+              });
+            } catch (err) {
+            }
+            try {
+              local.innerHTML = pe.innerHTML;
+            } catch (err) {
+            }
+            try {
+              const placeholders = pe.querySelectorAll("[data-rhe-script]");
+              placeholders.forEach((ph) => {
+                const encoded = ph.getAttribute("data-rhe-script") || "";
+                let code = "";
+                try {
+                  code = typeof atob !== "undefined" ? decodeURIComponent(escape(atob(encoded))) : decodeURIComponent(encoded);
+                } catch (e) {
+                  try {
+                    code = decodeURIComponent(encoded);
+                  } catch (er) {
+                    code = "";
+                  }
+                }
+                const attrsRaw = ph.getAttribute("data-rhe-script-attrs");
+                let attrs = {};
+                if (attrsRaw) {
+                  try {
+                    attrs = JSON.parse(decodeURIComponent(attrsRaw));
+                  } catch (e) {
+                    attrs = {};
+                  }
+                }
+                const parentId = ph.getAttribute("data-rhe-script-parent");
+                try {
+                  const s = doc.createElement("script");
+                  try {
+                    s.type = "text/javascript";
+                    s.async = false;
+                  } catch (err) {
+                  }
+                  Object.keys(attrs).forEach(
+                    (k) => s.setAttribute(k, attrs[k])
+                  );
+                  if (attrs.src) {
+                    const p = new Promise((resolve) => {
+                      s.addEventListener("load", () => resolve());
+                      s.addEventListener("error", () => resolve());
+                    });
+                    loadPromises.push(p);
+                    s.src = attrs.src;
+                  } else {
+                    s.textContent = code;
+                  }
+                  if (parentId === "head") {
+                    doc.head.appendChild(s);
+                  } else {
+                    const target = doc.body.querySelector(
+                      `[data-rhe-id="${parentId}"]`
+                    );
+                    if (target) target.appendChild(s);
+                    else doc.body.appendChild(s);
+                  }
+                } catch (e) {
+                }
+              });
+            } catch (e) {
+            }
+          });
+          try {
+            if (loadPromises.length) {
+              const waiter = Promise.allSettled ? Promise.allSettled(loadPromises) : Promise.all(
+                loadPromises.map((p) => p.catch(() => void 0))
+              );
+              waiter.then(() => {
+                try {
+                  doc.dispatchEvent(new Event("rhe:scripts-restored"));
+                } catch (e) {
+                }
+              });
+            } else {
+              try {
+                doc.dispatchEvent(new Event("rhe:scripts-restored"));
+              } catch (e) {
+              }
+            }
+          } catch (e) {
+          }
+        } else {
+          doc.body.innerHTML = parsed.body.innerHTML;
+        }
+      } else {
+        doc.documentElement.innerHTML = safe;
+      }
+    } catch (err) {
+      doc.documentElement.innerHTML = safe;
+    }
     injectStyles(doc);
     try {
       doc.dispatchEvent(new Event("selectionchange"));
@@ -736,7 +1203,119 @@ function handleRedo() {
       next.replace(/^<!doctype html>\n?/i, ""),
       doc
     );
-    doc.documentElement.innerHTML = safeNext;
+    try {
+      const parser = new DOMParser();
+      const parsed = parser.parseFromString(safeNext, "text/html");
+      if (parsed && parsed.body && doc.body) {
+        const parsedEls = parsed.body.querySelectorAll("[data-rhe-id]");
+        if (parsedEls && parsedEls.length) {
+          const loadPromises = [];
+          parsedEls.forEach((pe) => {
+            const id = pe.getAttribute("data-rhe-id");
+            if (!id) return;
+            const local = doc.body.querySelector(`[data-rhe-id="${id}"]`);
+            if (!local) return;
+            try {
+              Array.from(local.attributes).forEach((a) => {
+                if (a.name !== "data-rhe-id") local.removeAttribute(a.name);
+              });
+              Array.from(pe.attributes).forEach((a) => {
+                if (a.name !== "data-rhe-id")
+                  local.setAttribute(a.name, a.value);
+              });
+            } catch (err) {
+            }
+            try {
+              local.innerHTML = pe.innerHTML;
+            } catch (err) {
+            }
+            try {
+              const placeholders = pe.querySelectorAll("[data-rhe-script]");
+              placeholders.forEach((ph) => {
+                const encoded = ph.getAttribute("data-rhe-script") || "";
+                let code = "";
+                try {
+                  code = typeof atob !== "undefined" ? decodeURIComponent(escape(atob(encoded))) : decodeURIComponent(encoded);
+                } catch (e) {
+                  try {
+                    code = decodeURIComponent(encoded);
+                  } catch (er) {
+                    code = "";
+                  }
+                }
+                const attrsRaw = ph.getAttribute("data-rhe-script-attrs");
+                let attrs = {};
+                if (attrsRaw) {
+                  try {
+                    attrs = JSON.parse(decodeURIComponent(attrsRaw));
+                  } catch (e) {
+                    attrs = {};
+                  }
+                }
+                const parentId = ph.getAttribute("data-rhe-script-parent");
+                try {
+                  const s = doc.createElement("script");
+                  try {
+                    s.type = "text/javascript";
+                    s.async = false;
+                  } catch (err) {
+                  }
+                  Object.keys(attrs).forEach(
+                    (k) => s.setAttribute(k, attrs[k])
+                  );
+                  if (attrs.src) {
+                    const p = new Promise((resolve) => {
+                      s.addEventListener("load", () => resolve());
+                      s.addEventListener("error", () => resolve());
+                    });
+                    loadPromises.push(p);
+                    s.src = attrs.src;
+                  } else {
+                    s.textContent = code;
+                  }
+                  if (parentId === "head") {
+                    doc.head.appendChild(s);
+                  } else {
+                    const target = doc.body.querySelector(
+                      `[data-rhe-id="${parentId}"]`
+                    );
+                    if (target) target.appendChild(s);
+                    else doc.body.appendChild(s);
+                  }
+                } catch (e) {
+                }
+              });
+            } catch (e) {
+            }
+          });
+          try {
+            if (loadPromises.length) {
+              const waiter = Promise.allSettled ? Promise.allSettled(loadPromises) : Promise.all(
+                loadPromises.map((p) => p.catch(() => void 0))
+              );
+              waiter.then(() => {
+                try {
+                  doc.dispatchEvent(new Event("rhe:scripts-restored"));
+                } catch (e) {
+                }
+              });
+            } else {
+              try {
+                doc.dispatchEvent(new Event("rhe:scripts-restored"));
+              } catch (e) {
+              }
+            }
+          } catch (e) {
+          }
+        } else {
+          doc.body.innerHTML = parsed.body.innerHTML;
+        }
+      } else {
+        doc.documentElement.innerHTML = safeNext;
+      }
+    } catch (err) {
+      doc.documentElement.innerHTML = safeNext;
+    }
     injectStyles(doc);
     try {
       doc.dispatchEvent(new Event("selectionchange"));
@@ -892,6 +1471,44 @@ function findBlockAncestor(node) {
 // src/dom/handlers.ts
 init_constants();
 function attachStandaloneHandlers(doc) {
+  try {
+    const selector = [
+      "p",
+      "div",
+      "section",
+      "article",
+      "header",
+      "footer",
+      "aside",
+      "nav",
+      "span",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "li",
+      "figure",
+      "figcaption",
+      "blockquote",
+      "pre",
+      "code"
+    ].join(",");
+    const candidates = Array.from(
+      doc.querySelectorAll(selector)
+    ).filter((el) => isEditableCandidate(el));
+    candidates.forEach((target) => {
+      if (!target.hasAttribute("data-rhe-id")) {
+        const uid = `rhe-init-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        try {
+          target.setAttribute("data-rhe-id", uid);
+        } catch (err) {
+        }
+      }
+    });
+  } catch (err) {
+  }
   doc.addEventListener(
     "click",
     (e) => {
@@ -901,6 +1518,13 @@ function attachStandaloneHandlers(doc) {
       if (_getCurrentEditable() && _getCurrentEditable() !== target) {
         (_a = _getCurrentEditable()) == null ? void 0 : _a.removeAttribute("contenteditable");
         (_b = _getCurrentEditable()) == null ? void 0 : _b.classList.remove(CLASS_ACTIVE);
+      }
+      if (!target.hasAttribute("data-rhe-id")) {
+        const uid = `rhe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+        try {
+          target.setAttribute("data-rhe-id", uid);
+        } catch (err) {
+        }
       }
       _setCurrentEditable(target);
       target.classList.add(CLASS_ACTIVE);
@@ -1019,20 +1643,74 @@ function getCleanHTML() {
     const styleNode = clone.querySelector(`#${STYLE_ID}`);
     if (styleNode && styleNode.parentNode)
       styleNode.parentNode.removeChild(styleNode);
-    const editableNodes = clone.querySelectorAll(
-      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
-    );
-    editableNodes.forEach((el) => {
-      try {
-        if (el instanceof Element) {
+    try {
+      const cleanElement = (el) => {
+        try {
           if (el.hasAttribute("contenteditable"))
             el.removeAttribute("contenteditable");
           if (el.hasAttribute("tabindex")) el.removeAttribute("tabindex");
-          el.classList.remove(CLASS_EDITABLE, CLASS_ACTIVE);
+        } catch (e) {
         }
-      } catch (e) {
+        try {
+          const attrs = Array.from(el.attributes || []);
+          attrs.forEach((a) => {
+            const rawName = a.name;
+            const name = rawName.toLowerCase();
+            if (name.startsWith("on")) {
+              try {
+                el.removeAttribute(rawName);
+              } catch (e) {
+              }
+              return;
+            }
+            if (name === "data-rhe-id" || name.startsWith("data-rhe-") || name === "data-rhe") {
+              try {
+                el.removeAttribute(rawName);
+              } catch (e) {
+              }
+              return;
+            }
+          });
+        } catch (e) {
+        }
+        try {
+          if (el.id) {
+            const id = el.id;
+            if (id === TOOLBAR_ID || id === STYLE_ID || id.startsWith("editor-") || id.startsWith("rhe-")) {
+              el.removeAttribute("id");
+            }
+          }
+        } catch (e) {
+        }
+        try {
+          const cls = Array.from(el.classList || []);
+          cls.forEach((c) => {
+            if (c === CLASS_EDITABLE || c === CLASS_ACTIVE || c.startsWith("editor-") || c.startsWith("rhe-")) {
+              try {
+                el.classList.remove(c);
+              } catch (e) {
+              }
+            }
+          });
+          if (el.hasAttribute("class") && (el.getAttribute("class") || "").trim() === "") {
+            try {
+              el.removeAttribute("class");
+            } catch (e) {
+            }
+          }
+        } catch (e) {
+        }
+        try {
+          const children = Array.from(el.children || []);
+          children.forEach((child) => cleanElement(child));
+        } catch (e) {
+        }
+      };
+      if (clone.nodeType === Node.ELEMENT_NODE) {
+        cleanElement(clone);
       }
-    });
+    } catch (e) {
+    }
     return "<!doctype html>\n" + clone.outerHTML;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

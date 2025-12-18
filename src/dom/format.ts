@@ -12,6 +12,11 @@ export function computeFormatState(doc: Document): {
   bold: boolean;
   italic: boolean;
   underline: boolean;
+  foreColor: string | null;
+  hiliteColor: string | null;
+  fontName: string | null;
+  fontSize: string | null;
+  formatBlock: string | null;
 } {
   try {
     const s = doc.getSelection();
@@ -21,7 +26,17 @@ export function computeFormatState(doc: Document): {
         s.anchorNode.nodeType === Node.ELEMENT_NODE
           ? (s.anchorNode as HTMLElement)
           : (s.anchorNode.parentElement as HTMLElement);
-    if (!el) return { bold: false, italic: false, underline: false };
+    if (!el)
+      return {
+        bold: false,
+        italic: false,
+        underline: false,
+        foreColor: null,
+        hiliteColor: null,
+        fontName: null,
+        fontSize: null,
+        formatBlock: null,
+      };
     const computed = doc.defaultView?.getComputedStyle(el) as
       | CSSStyleDeclaration
       | undefined;
@@ -38,9 +53,74 @@ export function computeFormatState(doc: Document): {
       el.closest("u") ||
       (computed && (computed.textDecorationLine || "").includes("underline"))
     );
-    return { bold, italic, underline };
+    // Try to detect text color and highlight (background) color at the selection
+    const foreColor =
+      (el.closest("font[color]") as HTMLElement | null)?.getAttribute(
+        "color"
+      ) ||
+      (computed && computed.color) ||
+      null;
+    // Background color may come from a <mark> element or computed background-color
+    const mark = el.closest("mark") as HTMLElement | null;
+    const hiliteColor =
+      (mark && (mark.getAttribute("style") || "")) ||
+      (computed &&
+      computed.backgroundColor &&
+      computed.backgroundColor !== "rgba(0, 0, 0, 0)"
+        ? computed.backgroundColor
+        : null);
+
+    // detect font name + size from computed style
+    const fontName = (computed && computed.fontFamily) || null;
+    const fontSize = (computed && computed.fontSize) || null;
+    // detect block ancestor (paragraph, heading etc.)
+    let blockEl: HTMLElement | null = el;
+    while (blockEl && blockEl.parentElement) {
+      const tag = blockEl.tagName;
+      if (
+        [
+          "P",
+          "DIV",
+          "SECTION",
+          "ARTICLE",
+          "LI",
+          "TD",
+          "BLOCKQUOTE",
+          "H1",
+          "H2",
+          "H3",
+          "H4",
+          "H5",
+          "H6",
+        ].includes(tag)
+      ) {
+        break;
+      }
+      blockEl = blockEl.parentElement as HTMLElement | null;
+    }
+    const formatBlock = blockEl ? blockEl.tagName.toLowerCase() : null;
+
+    return {
+      bold,
+      italic,
+      underline,
+      foreColor,
+      hiliteColor,
+      fontName,
+      fontSize,
+      formatBlock,
+    };
   } catch (err) {
-    return { bold: false, italic: false, underline: false };
+    return {
+      bold: false,
+      italic: false,
+      underline: false,
+      foreColor: null,
+      hiliteColor: null,
+      fontName: null,
+      fontSize: null,
+      formatBlock: null,
+    };
   }
 }
 

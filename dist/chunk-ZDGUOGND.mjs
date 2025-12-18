@@ -71,9 +71,9 @@ var LABEL_BOLD = "<b>B</b>";
 var LABEL_ITALIC = "<i>I</i>";
 var LABEL_UNDERLINE = "<u>U</u>";
 var LABEL_STRIKETHROUGH = "<s>S</s>";
-var LABEL_UNDO = "Undo";
-var LABEL_REDO = "Redo";
-var LABEL_LINK = "Link";
+var LABEL_UNDO = "\u21BA";
+var LABEL_REDO = "\u21BB";
+var LABEL_LINK = "\u{1F517}";
 var LABEL_ALIGN_LEFT = `
 	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 		<rect x="1" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
@@ -100,10 +100,40 @@ var LABEL_ALIGN_RIGHT = `
 `;
 var FONT_OPTIONS = [
   { label: "Arial", value: "Arial" },
-  { label: "Georgia", value: "Georgia" },
-  { label: "Times New Roman", value: "Times New Roman" },
-  { label: "Courier New", value: "Courier New" },
-  { label: "Tahoma", value: "Tahoma" }
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, Geneva, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, Geneva, sans-serif" },
+  { label: "Trebuchet MS", value: "Trebuchet MS, Helvetica, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "Times New Roman, Times, serif" },
+  { label: "Palatino", value: "Palatino, 'Palatino Linotype', serif" },
+  { label: "Garamond", value: "Garamond, serif" },
+  { label: "Book Antiqua", value: "'Book Antiqua', Palatino, serif" },
+  { label: "Courier New", value: "'Courier New', Courier, monospace" },
+  { label: "Lucida Console", value: "'Lucida Console', Monaco, monospace" },
+  { label: "Impact", value: "Impact, Charcoal, sans-serif" },
+  { label: "Comic Sans MS", value: "'Comic Sans MS', 'Comic Sans', cursive" },
+  { label: "Segoe UI", value: "'Segoe UI', Tahoma, Geneva, sans-serif" },
+  {
+    label: "Roboto",
+    value: "Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif"
+  },
+  { label: "Open Sans", value: "'Open Sans', Arial, sans-serif" },
+  { label: "Lato", value: "Lato, 'Helvetica Neue', Arial, sans-serif" },
+  { label: "Montserrat", value: "Montserrat, Arial, sans-serif" },
+  { label: "Source Sans Pro", value: "'Source Sans Pro', Arial, sans-serif" },
+  { label: "Fira Sans", value: "'Fira Sans', Arial, sans-serif" },
+  { label: "Ubuntu", value: "Ubuntu, Arial, sans-serif" },
+  { label: "Noto Sans", value: "'Noto Sans', Arial, sans-serif" },
+  { label: "Droid Sans", value: "'Droid Sans', Arial, sans-serif" },
+  {
+    label: "Helvetica Neue",
+    value: "'Helvetica Neue', Helvetica, Arial, sans-serif"
+  },
+  {
+    label: "System UI",
+    value: "system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+  }
 ];
 var SIZE_OPTIONS = [
   { label: "8", value: "8" },
@@ -147,6 +177,17 @@ function sanitizeHtml(html, ctx) {
   if (win) {
     try {
       const DOMPurify = createDOMPurify(win);
+      try {
+        DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
+          try {
+            if (data && data.attrName && data.attrName.startsWith("data-")) {
+              data.keepAttr = true;
+            }
+          } catch (e) {
+          }
+        });
+      } catch (e) {
+      }
       return DOMPurify.sanitize(html, {
         // Use sensible defaults: allow common formatting tags but strip scripts
         ALLOWED_TAGS: [
@@ -159,6 +200,33 @@ function sanitizeHtml(html, ctx) {
           "p",
           "div",
           "span",
+          // Common semantic elements: preserve document structure so undo/redo
+          // does not flatten header/section/nav into plain content.
+          "header",
+          "nav",
+          "section",
+          "main",
+          "footer",
+          "article",
+          "aside",
+          "figure",
+          "figcaption",
+          "time",
+          // Interactive / form elements that may appear in content
+          "button",
+          "input",
+          "label",
+          "select",
+          "option",
+          "textarea",
+          "details",
+          "summary",
+          // Allow <style> tags so user/content-provided CSS is preserved
+          // when taking snapshots and during undo/redo operations.
+          // DOMPurify will still sanitize the contents of style blocks.
+          "style",
+          // Preserve linked stylesheets so page/editor styling isn't lost
+          "link",
           "ul",
           "ol",
           "li",
@@ -175,7 +243,20 @@ function sanitizeHtml(html, ctx) {
           "h6",
           "img"
         ],
-        ALLOWED_ATTR: ["href", "title", "alt", "src", "class", "style"]
+        ALLOWED_ATTR: [
+          "href",
+          "title",
+          "alt",
+          "src",
+          "class",
+          "style",
+          // Attributes used by <link> tags
+          "rel",
+          "type",
+          "media"
+        ],
+        // Also allow `id` attributes so element ids survive sanitization.
+        ADD_ATTR: ["id"]
       });
     } catch (e) {
     }
@@ -237,6 +318,61 @@ function pushStandaloneSnapshot(clearRedo = true) {
   const styleNode = clone.querySelector(`#${STYLE_ID}`);
   if (styleNode && styleNode.parentNode)
     styleNode.parentNode.removeChild(styleNode);
+  try {
+    const editableNodes = clone.querySelectorAll(
+      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
+    );
+    editableNodes.forEach((el) => {
+      try {
+        if (el instanceof Element) {
+          if (el.hasAttribute("contenteditable"))
+            el.removeAttribute("contenteditable");
+          if (el.hasAttribute("tabindex")) el.removeAttribute("tabindex");
+          el.classList.remove(CLASS_EDITABLE, CLASS_ACTIVE);
+        }
+      } catch (e) {
+      }
+    });
+  } catch (e) {
+  }
+  try {
+    const scripts = Array.from(
+      clone.querySelectorAll("script")
+    );
+    scripts.forEach((s) => {
+      var _a;
+      try {
+        const code = s.textContent || "";
+        const attrs = {};
+        Array.from(s.attributes).forEach((a) => attrs[a.name] = a.value);
+        const placeholder = clone.ownerDocument.createElement("span");
+        try {
+          const safe = typeof btoa !== "undefined" ? btoa(unescape(encodeURIComponent(code))) : encodeURIComponent(code);
+          placeholder.setAttribute("data-rhe-script", safe);
+        } catch (e) {
+          placeholder.setAttribute("data-rhe-script", encodeURIComponent(code));
+        }
+        if (Object.keys(attrs).length) {
+          placeholder.setAttribute(
+            "data-rhe-script-attrs",
+            encodeURIComponent(JSON.stringify(attrs))
+          );
+        }
+        const parentMarker = s.closest("[data-rhe-id]");
+        if (parentMarker && parentMarker.getAttribute("data-rhe-id")) {
+          placeholder.setAttribute(
+            "data-rhe-script-parent",
+            parentMarker.getAttribute("data-rhe-id")
+          );
+        } else {
+          placeholder.setAttribute("data-rhe-script-parent", "head");
+        }
+        (_a = s.parentNode) == null ? void 0 : _a.replaceChild(placeholder, s);
+      } catch (e) {
+      }
+    });
+  } catch (e) {
+  }
   const snapRaw = clone.outerHTML;
   const snap = sanitizeHtml(snapRaw, _doc);
   if (!_undoStack.length || _undoStack[_undoStack.length - 1] !== snap) {
@@ -302,4 +438,4 @@ export {
   pushStandaloneSnapshot,
   setMaxStackSize
 };
-//# sourceMappingURL=chunk-A3UDAUE6.mjs.map
+//# sourceMappingURL=chunk-ZDGUOGND.mjs.map

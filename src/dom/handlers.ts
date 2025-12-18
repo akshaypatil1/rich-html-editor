@@ -2,7 +2,6 @@ import {
   _getCurrentEditable,
   _setCurrentEditable,
   pushStandaloneSnapshot,
-  _getDoc,
   _getUndoStack,
   _getRedoStack,
 } from "../core/state";
@@ -23,6 +22,52 @@ import { CLASS_ACTIVE } from "../core/constants";
  * @param doc - Document to attach handlers to
  */
 export function attachStandaloneHandlers(doc: Document) {
+  // Assign stable data-rhe-id markers to likely editable candidates so
+  // snapshots include identifiers for selective restoration. Limit the
+  // selector to common content containers to avoid a full DOM walk.
+  try {
+    const selector = [
+      "p",
+      "div",
+      "section",
+      "article",
+      "header",
+      "footer",
+      "aside",
+      "nav",
+      "span",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "li",
+      "figure",
+      "figcaption",
+      "blockquote",
+      "pre",
+      "code",
+    ].join(",");
+    const candidates = Array.from(
+      doc.querySelectorAll<HTMLElement>(selector)
+    ).filter((el) => isEditableCandidate(el));
+    candidates.forEach((target) => {
+      if (!target.hasAttribute("data-rhe-id")) {
+        const uid = `rhe-init-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 7)}`;
+        try {
+          target.setAttribute("data-rhe-id", uid);
+        } catch (err) {
+          /* ignore */
+        }
+      }
+    });
+  } catch (err) {
+    /* ignore initialization errors */
+  }
+
   doc.addEventListener(
     "click",
     (e) => {
@@ -31,6 +76,20 @@ export function attachStandaloneHandlers(doc: Document) {
       if (_getCurrentEditable() && _getCurrentEditable() !== target) {
         _getCurrentEditable()?.removeAttribute("contenteditable");
         _getCurrentEditable()?.classList.remove(CLASS_ACTIVE);
+      }
+      // Ensure the editable element has a stable identifier so snapshots
+      // can restore only the editable region without touching the rest
+      // of the page (header, nav, scripts, etc.). Use a data attribute
+      // to avoid clashing with page ids.
+      if (!target.hasAttribute("data-rhe-id")) {
+        const uid = `rhe-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 7)}`;
+        try {
+          target.setAttribute("data-rhe-id", uid);
+        } catch (err) {
+          /* ignore attribute set errors */
+        }
       }
       _setCurrentEditable(target);
       target.classList.add(CLASS_ACTIVE);

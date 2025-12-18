@@ -68,15 +68,107 @@ export function injectStyles(doc: Document): void {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(2,6,23,0.08);
 }
-#${TOOLBAR_ID} select, #${TOOLBAR_ID} input[type="color"]{
+#${TOOLBAR_ID} select{
   padding: 6px 8px;
   border-radius: 8px;
   border: 1px solid ${BUTTON_BORDER};
   background: #fff;
   font-family: inherit;
 }
+#${TOOLBAR_ID} input[type="color"]{
+  border-radius: 8px;
+  border: 1px solid ${BUTTON_BORDER};
+  background: #fff;
+  font-family: inherit;
+}
+#${TOOLBAR_ID} .color-input-label{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
+/* Labeled color inputs (e.g. "Text Color <input type=color>") */
+#${TOOLBAR_ID} .color-label{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+#${TOOLBAR_ID} .color-input-label .color-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+#${TOOLBAR_ID} .text-color-icon{
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-block;
+  padding-bottom: 2px;
+  border-bottom: 3px solid currentColor;
+  transform-origin: center;
+}
+#${TOOLBAR_ID} .highlight-icon{
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+}
+#${TOOLBAR_ID} .color-icon svg{
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+/* Text color wrapper: A with a small swatch on the right */
+#${TOOLBAR_ID} .text-color-wrapper{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+#${TOOLBAR_ID} .text-color-wrapper .text-A{
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+#${TOOLBAR_ID} .text-color-wrapper .color-swatch{
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset;
+  background: currentColor;
+}
+
+/* Highlight wrapper: small colored bar under/behind the A to mimic highlighter */
+#${TOOLBAR_ID} .highlight-wrapper{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+#${TOOLBAR_ID} .highlight-wrapper .highlight-bar{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 8px;
+  border-radius: 3px;
+  background: #ffeb3b; /* default yellow */
+  z-index: 0;
+}
+#${TOOLBAR_ID} .highlight-wrapper .text-A{
+  position: relative;
+  z-index: 1;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 4px;
+}
 #${TOOLBAR_ID} span{
-  margin-left: 16px;
   color: ${INFO_COLOR};
   font-size: 90%;
 }
@@ -101,16 +193,13 @@ export function injectStyles(doc: Document): void {
   width: 16px;
   height: 16px;
   display: block;
-  /* Default: use stroke icons (outline) so they look like Phosphor regular */
+  /* Default icon appearance */
   fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
 }
 
 /* Active/pressed: switch to filled appearance */
 #${TOOLBAR_ID} button[aria-pressed="true"] svg{
   fill: currentColor;
-  stroke: none;
 }
 
 /* Focus and accessibility */

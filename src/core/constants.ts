@@ -25,9 +25,9 @@ export const LABEL_BOLD = "<b>B</b>";
 export const LABEL_ITALIC = "<i>I</i>";
 export const LABEL_UNDERLINE = "<u>U</u>";
 export const LABEL_STRIKETHROUGH = "<s>S</s>";
-export const LABEL_UNDO = "Undo";
-export const LABEL_REDO = "Redo";
-export const LABEL_LINK = "Link";
+export const LABEL_UNDO = "↺";
+export const LABEL_REDO = "↻";
+export const LABEL_LINK = "🔗";
 export const LABEL_ALIGN_LEFT = `
 	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 		<rect x="1" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
@@ -56,10 +56,41 @@ export const LABEL_ALIGN_RIGHT = `
 // Font and size option lists used by the toolbar
 export const FONT_OPTIONS: { label: string; value: string }[] = [
   { label: "Arial", value: "Arial" },
-  { label: "Georgia", value: "Georgia" },
-  { label: "Times New Roman", value: "Times New Roman" },
-  { label: "Courier New", value: "Courier New" },
-  { label: "Tahoma", value: "Tahoma" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Verdana", value: "Verdana, Geneva, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, Geneva, sans-serif" },
+  { label: "Trebuchet MS", value: "Trebuchet MS, Helvetica, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "Times New Roman, Times, serif" },
+  { label: "Palatino", value: "Palatino, 'Palatino Linotype', serif" },
+  { label: "Garamond", value: "Garamond, serif" },
+  { label: "Book Antiqua", value: "'Book Antiqua', Palatino, serif" },
+  { label: "Courier New", value: "'Courier New', Courier, monospace" },
+  { label: "Lucida Console", value: "'Lucida Console', Monaco, monospace" },
+  { label: "Impact", value: "Impact, Charcoal, sans-serif" },
+  { label: "Comic Sans MS", value: "'Comic Sans MS', 'Comic Sans', cursive" },
+  { label: "Segoe UI", value: "'Segoe UI', Tahoma, Geneva, sans-serif" },
+  {
+    label: "Roboto",
+    value: "Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  { label: "Open Sans", value: "'Open Sans', Arial, sans-serif" },
+  { label: "Lato", value: "Lato, 'Helvetica Neue', Arial, sans-serif" },
+  { label: "Montserrat", value: "Montserrat, Arial, sans-serif" },
+  { label: "Source Sans Pro", value: "'Source Sans Pro', Arial, sans-serif" },
+  { label: "Fira Sans", value: "'Fira Sans', Arial, sans-serif" },
+  { label: "Ubuntu", value: "Ubuntu, Arial, sans-serif" },
+  { label: "Noto Sans", value: "'Noto Sans', Arial, sans-serif" },
+  { label: "Droid Sans", value: "'Droid Sans', Arial, sans-serif" },
+  {
+    label: "Helvetica Neue",
+    value: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+  },
+  {
+    label: "System UI",
+    value:
+      "system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  },
 ];
 
 export const SIZE_OPTIONS: { label: string; value: string }[] = [
@@ -99,4 +130,18 @@ export const PALETTE_SVG = `
     <circle cx="11.5" cy="8.5" r="1" fill="currentColor"/>
     <circle cx="14.5" cy="11.5" r="1" fill="currentColor"/>
   </svg>
+`;
+
+// MS Word-like icons for color controls
+export const TEXT_COLOR_ICON_HTML = `
+  <span class="text-color-wrapper" aria-hidden="true">
+    <span class="text-A">A</span>
+  </span>
+`;
+
+export const HIGHLIGHT_ICON_HTML = `
+  <span class="highlight-wrapper" aria-hidden="true">
+    <span class="highlight-bar" data-role="highlight"></span>
+    <span class="text-A">A</span>
+  </span>
 `;

@@ -32,6 +32,8 @@ import {
   SIZE_OPTIONS,
   FORMAT_OPTIONS,
   PALETTE_SVG,
+  TEXT_COLOR_ICON_HTML,
+  HIGHLIGHT_ICON_HTML,
 } from "../core/constants";
 
 export function injectToolbar(
@@ -46,6 +48,11 @@ export function injectToolbar(
       bold: boolean;
       italic: boolean;
       underline: boolean;
+      foreColor?: string | null;
+      hiliteColor?: string | null;
+      fontName?: string | null;
+      fontSize?: string | null;
+      formatBlock?: string | null;
     };
     getSelectedElementInfo: () => string | null;
   }
@@ -100,7 +107,8 @@ export function injectToolbar(
   function makeSelect(
     title: string,
     command: string,
-    optionsList: { label: string; value: string }[]
+    optionsList: { label: string; value: string }[],
+    initialValue?: string | null
   ) {
     const select = doc.createElement("select");
     select.title = title;
@@ -110,6 +118,13 @@ export function injectToolbar(
     for (const opt of optionsList) {
       select.appendChild(new Option(opt.label, opt.value));
     }
+    // set initial value if provided
+    try {
+      if (initialValue) select.value = initialValue;
+    } catch (e) {
+      /* ignore invalid value */
+    }
+
     select.onchange = (e) => {
       const val = (e.target as HTMLSelectElement).value;
       options.onCommand(command, val);
@@ -118,24 +133,115 @@ export function injectToolbar(
     return select;
   }
 
-  function makeColorInput(title: string, command: string) {
+  function makeColorInput(
+    title: string,
+    command: string,
+    initialColor?: string
+  ) {
+    /*
     const label = doc.createElement("label");
     label.title = title;
     label.setAttribute("aria-label", title);
     label.className = "color-input-label";
-    // Palette icon (inline SVG) placed before the native color input
-    // const icon = doc.createElement("span");
-    // icon.className = "color-palette-icon";
-    // icon.innerHTML = PALETTE_SVG;
+    // Icon element shown before the native color input. Use MS Word-like icons
+    const iconWrap = doc.createElement("span");
+    iconWrap.className = "color-icon";
+    iconWrap.setAttribute("aria-hidden", "true");
+    if (command === "foreColor") {
+      iconWrap.innerHTML = TEXT_COLOR_ICON_HTML;
+    } else if (command === "hiliteColor") {
+      iconWrap.innerHTML = HIGHLIGHT_ICON_HTML;
+    } else {
+      iconWrap.innerHTML = PALETTE_SVG;
+    }
+    */
+
     const input = doc.createElement("input");
     input.type = "color";
     input.className = "toolbar-color-input";
+    // Wrap the native color input with a visible label so users can see
+    // which control is for text color vs highlight.
+    const wrapper = doc.createElement("label");
+    wrapper.className = "color-label";
+    // Use the provided title as the label text (e.g. "Text Color")
+    wrapper.appendChild(doc.createTextNode(title + " "));
+    wrapper.appendChild(input);
+    // Preserve the user's selection when the color picker opens (input steals focus)
+    let savedRange: Range | null = null;
+    input.addEventListener("pointerdown", () => {
+      const s = doc.getSelection();
+      if (s && s.rangeCount) savedRange = s.getRangeAt(0).cloneRange();
+    });
     input.onchange = (e) => {
+      // Restore selection before applying the command
+      try {
+        const s = doc.getSelection();
+        if (savedRange && s) {
+          s.removeAllRanges();
+          s.addRange(savedRange);
+        }
+      } catch (err) {
+        // ignore restore errors
+      }
       options.onCommand(command, (e.target as HTMLInputElement).value);
+      // clear saved range after applying
+      savedRange = null;
     };
-    // label.appendChild(icon);
-    label.appendChild(input);
-    return label;
+    // Note: iconWrap/label are currently commented out above; operate on the
+    // native color `input` only and set its value to match detected colors.
+    function rgbToHex(input?: string | null): string | null {
+      if (!input) return null;
+      const v = input.trim();
+      if (v.startsWith("#")) {
+        // Normalize short hex #abc -> #aabbcc
+        if (v.length === 4) {
+          return ("#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3]).toLowerCase();
+        }
+        return v.toLowerCase();
+      }
+      const rgbMatch = v.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (rgbMatch) {
+        const r = Number(rgbMatch[1]);
+        const g = Number(rgbMatch[2]);
+        const b = Number(rgbMatch[3]);
+        const hex =
+          "#" +
+          [r, g, b]
+            .map((n) => n.toString(16).padStart(2, "0"))
+            .join("")
+            .toLowerCase();
+        return hex;
+      }
+      return null;
+    }
+
+    const setColor = (val?: string) => {
+      if (!val) return;
+      const hex = rgbToHex(val) || val;
+      // set native input value if we have a hex color
+      try {
+        if (
+          hex &&
+          hex.startsWith("#") &&
+          (input as HTMLInputElement).value !== hex
+        ) {
+          (input as HTMLInputElement).value = hex;
+        }
+      } catch (e) {
+        // ignore invalid value assignment
+      }
+    };
+    // initialize from provided initialColor when available
+    if (initialColor) setColor(initialColor);
+    input.addEventListener("input", (e) => {
+      const val = (e.target as HTMLInputElement).value;
+      setColor(val);
+    });
+    // Instead of using a label+icon, return the native input directly.
+    // Forward title and ARIA to the input so accessibility is preserved.
+    input.title = title;
+    input.setAttribute("aria-label", title);
+    return wrapper;
   }
 
   const format = options.getFormatState();
@@ -182,9 +288,20 @@ export function injectToolbar(
 
   // Section 2: Format, Font & Size
   const grp2 = makeGroup();
-  grp2.appendChild(makeSelect("Format", "formatBlock", FORMAT_OPTIONS));
-  grp2.appendChild(makeSelect("Font", "fontName", FONT_OPTIONS));
-  grp2.appendChild(makeSelect("Size", "fontSize", SIZE_OPTIONS));
+  grp2.appendChild(
+    makeSelect(
+      "Format",
+      "formatBlock",
+      FORMAT_OPTIONS,
+      (format as any).formatBlock
+    )
+  );
+  grp2.appendChild(
+    makeSelect("Font", "fontName", FONT_OPTIONS, (format as any).fontName)
+  );
+  grp2.appendChild(
+    makeSelect("Size", "fontSize", SIZE_OPTIONS, (format as any).fontSize)
+  );
   toolbar.appendChild(grp2);
   toolbar.appendChild(makeSep());
 
@@ -223,8 +340,16 @@ export function injectToolbar(
 
   // Section 5: Colors
   const grp5 = makeGroup();
-  grp5.appendChild(makeColorInput("Text color", "foreColor"));
-  grp5.appendChild(makeColorInput("Highlight color", "hiliteColor"));
+  grp5.appendChild(
+    makeColorInput("Text color", "foreColor", (format as any).foreColor)
+  );
+  grp5.appendChild(
+    makeColorInput(
+      "Highlight color",
+      "hiliteColor",
+      (format as any).hiliteColor
+    )
+  );
   toolbar.appendChild(grp5);
   toolbar.appendChild(makeSep());
 

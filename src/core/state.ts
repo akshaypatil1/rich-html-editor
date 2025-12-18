@@ -1,5 +1,11 @@
 import { editorEventEmitter } from "./events";
-import { DEFAULT_MAX_STACK, TOOLBAR_ID, STYLE_ID } from "./constants";
+import {
+  DEFAULT_MAX_STACK,
+  TOOLBAR_ID,
+  STYLE_ID,
+  CLASS_EDITABLE,
+  CLASS_ACTIVE,
+} from "./constants";
 import { sanitizeHtml } from "../utils/sanitize";
 
 let _doc: Document | null = null;
@@ -58,6 +64,76 @@ export function pushStandaloneSnapshot(clearRedo = true) {
   const styleNode = clone.querySelector(`#${STYLE_ID}`);
   if (styleNode && styleNode.parentNode)
     styleNode.parentNode.removeChild(styleNode);
+  // Remove editor-specific attributes/classes so snapshots don't persist
+  // transient editing state (contenteditable, toolbar classes, tabindex).
+  try {
+    const editableNodes = clone.querySelectorAll(
+      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
+    );
+    editableNodes.forEach((el) => {
+      try {
+        if (el instanceof Element) {
+          if (el.hasAttribute("contenteditable"))
+            el.removeAttribute("contenteditable");
+          if (el.hasAttribute("tabindex")) el.removeAttribute("tabindex");
+          el.classList.remove(CLASS_EDITABLE, CLASS_ACTIVE);
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    });
+  } catch (e) {
+    /* ignore */
+  }
+  // Preserve scripts by replacing them with a harmless placeholder
+  // that contains the encoded script source/attributes. This allows the
+  // sanitizer to run (which strips <script> tags) while keeping the
+  // script content available to re-insert and execute on restore.
+  try {
+    const scripts = Array.from(
+      clone.querySelectorAll<HTMLScriptElement>("script")
+    );
+    scripts.forEach((s) => {
+      try {
+        const code = s.textContent || "";
+        const attrs: Record<string, string> = {};
+        Array.from(s.attributes).forEach((a) => (attrs[a.name] = a.value));
+        const placeholder = clone.ownerDocument!.createElement("span");
+        // encode script body in base64 to survive sanitization
+        try {
+          // btoa may throw on Unicode; encodeURIComponent first
+          const safe =
+            typeof btoa !== "undefined"
+              ? btoa(unescape(encodeURIComponent(code)))
+              : encodeURIComponent(code);
+          placeholder.setAttribute("data-rhe-script", safe);
+        } catch (e) {
+          placeholder.setAttribute("data-rhe-script", encodeURIComponent(code));
+        }
+        if (Object.keys(attrs).length) {
+          placeholder.setAttribute(
+            "data-rhe-script-attrs",
+            encodeURIComponent(JSON.stringify(attrs))
+          );
+        }
+        // mark parent editable region if present so we can reinsert in-place
+        const parentMarker = s.closest("[data-rhe-id]") as HTMLElement | null;
+        if (parentMarker && parentMarker.getAttribute("data-rhe-id")) {
+          placeholder.setAttribute(
+            "data-rhe-script-parent",
+            parentMarker.getAttribute("data-rhe-id")!
+          );
+        } else {
+          placeholder.setAttribute("data-rhe-script-parent", "head");
+        }
+        s.parentNode?.replaceChild(placeholder, s);
+      } catch (e) {
+        /* ignore per-script errors */
+      }
+    });
+  } catch (e) {
+    /* ignore script extraction errors */
+  }
   const snapRaw = clone.outerHTML;
   const snap = sanitizeHtml(snapRaw, _doc);
   if (!_undoStack.length || _undoStack[_undoStack.length - 1] !== snap) {

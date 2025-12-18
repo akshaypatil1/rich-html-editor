@@ -54,37 +54,8 @@ interface EditorConfig {
 
 /**
  * Initialize the rich HTML editor on an iframe element
- *
- * Sets up:
- * - State management (undo/redo stacks, current editable element)
- * - DOM styles for editable element highlighting
- * - Event handlers for click, selection change, and input events
- * - Toolbar UI with formatting buttons
- *
- * @param iframe - The target iframe element to enable editing on
- * @throws {Error} If iframe is invalid or contentDocument is not accessible
- *
- * @example
- * ```typescript
- * const iframe = document.querySelector('iframe');
- * initRichEditor(iframe);
- * ```
  */
 declare function initRichEditor(iframe: HTMLIFrameElement, config?: EditorConfig): void;
-/**
- * Get the cleaned HTML content from the edited document
- *
- * Returns the full HTML document with proper DOCTYPE declaration
- *
- * @returns HTML string with DOCTYPE, or empty string if editor not initialized
- * @throws {Error} If document is not properly initialized
- *
- * @example
- * ```typescript
- * const html = getCleanHTML();
- * console.log(html); // <!doctype html>\n<html>...</html>
- * ```
- */
 declare function getCleanHTML(): string;
 
 declare class EditorEventEmitter {

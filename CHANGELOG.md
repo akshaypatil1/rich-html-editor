@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-12-18
+
+### Added
+
+- Responsive toolbar layout: toolbar now wraps on narrow screens and includes an accessible overflow "More" menu that exposes less-used controls (format, font, size, color pickers, link). Overflow items reuse existing command handlers so functionality is preserved.
+
+### Changed
+
+- Toolbar styles updated with media queries to reduce spacing on small viewports, hide separators, and enable horizontal scrolling on very small screens.
+
+### Fixed
+
+- Preserve accessibility and keyboard support for toolbar controls when moved into the overflow menu (aria attributes, focus management, Esc to close).
+
 ## [0.1.0] - 2025-12-17
 
 ### Added

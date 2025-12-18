@@ -288,6 +288,7 @@ export function injectToolbar(
 
   // Section 2: Format, Font & Size
   const grp2 = makeGroup();
+  grp2.className = "toolbar-group collapse-on-small";
   grp2.appendChild(
     makeSelect(
       "Format",
@@ -340,6 +341,7 @@ export function injectToolbar(
 
   // Section 5: Colors
   const grp5 = makeGroup();
+  grp5.className = "toolbar-group collapse-on-small";
   grp5.appendChild(
     makeColorInput("Text color", "foreColor", (format as any).foreColor)
   );
@@ -355,8 +357,104 @@ export function injectToolbar(
 
   // Section 6: Link
   const grp6 = makeGroup();
+  grp6.className = "toolbar-group collapse-on-small";
   grp6.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
   toolbar.appendChild(grp6);
+
+  // Overflow menu button and floating menu for small screens
+  const overflowBtn = doc.createElement("button");
+  overflowBtn.type = "button";
+  overflowBtn.className = "toolbar-overflow-btn";
+  overflowBtn.title = "More";
+  overflowBtn.setAttribute("aria-label", "More toolbar actions");
+  overflowBtn.setAttribute("aria-haspopup", "true");
+  overflowBtn.setAttribute("aria-expanded", "false");
+  overflowBtn.tabIndex = 0;
+  overflowBtn.innerHTML = "⋯";
+
+  const overflowMenu = doc.createElement("div");
+  overflowMenu.className = "toolbar-overflow-menu";
+  overflowMenu.setAttribute("role", "menu");
+  overflowMenu.hidden = true;
+
+  function openOverflow() {
+    overflowMenu.hidden = false;
+    overflowBtn.setAttribute("aria-expanded", "true");
+    const first = overflowMenu.querySelector<HTMLElement>(
+      "button, select, input"
+    );
+    first?.focus();
+  }
+  function closeOverflow() {
+    overflowMenu.hidden = true;
+    overflowBtn.setAttribute("aria-expanded", "false");
+    overflowBtn.focus();
+  }
+
+  overflowBtn.addEventListener("click", (e) => {
+    if (overflowMenu.hidden) openOverflow();
+    else closeOverflow();
+  });
+  overflowBtn.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (overflowMenu.hidden) openOverflow();
+      else closeOverflow();
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (overflowMenu.hidden) openOverflow();
+    }
+  });
+
+  overflowMenu.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeOverflow();
+    }
+  });
+  doc.addEventListener("pointerdown", (ev) => {
+    if (
+      !overflowMenu.hidden &&
+      !overflowMenu.contains(ev.target as Node) &&
+      ev.target !== overflowBtn
+    ) {
+      closeOverflow();
+    }
+  });
+
+  // Populate overflow menu with duplicates of the collapsed controls
+  overflowMenu.appendChild(
+    makeSelect(
+      "Format",
+      "formatBlock",
+      FORMAT_OPTIONS,
+      (format as any).formatBlock
+    )
+  );
+  overflowMenu.appendChild(
+    makeSelect("Font", "fontName", FONT_OPTIONS, (format as any).fontName)
+  );
+  overflowMenu.appendChild(
+    makeSelect("Size", "fontSize", SIZE_OPTIONS, (format as any).fontSize)
+  );
+  overflowMenu.appendChild(
+    makeColorInput("Text color", "foreColor", (format as any).foreColor)
+  );
+  overflowMenu.appendChild(
+    makeColorInput(
+      "Highlight color",
+      "hiliteColor",
+      (format as any).hiliteColor
+    )
+  );
+  overflowMenu.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
+
+  const overflowWrap = makeGroup();
+  overflowWrap.className = "toolbar-group toolbar-overflow-wrap";
+  overflowWrap.appendChild(overflowBtn);
+  overflowWrap.appendChild(overflowMenu);
+  toolbar.appendChild(overflowWrap);
 
   // const info = doc.createElement("span");
   // // Info styles moved to stylesheet

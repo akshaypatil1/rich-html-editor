@@ -1,5 +1,7 @@
 # rich-html-editor
 
+[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor)
+
 A framework-agnostic, plug-and-play rich HTML editor library for adding WYSIWYG editing capabilities to your web applications.
 
 ## Features
@@ -52,9 +54,11 @@ Vanilla JavaScript
 ```html
 <iframe id="editor" srcdoc="<body><div class=\"editable\">Edit me</div></body>"></iframe>
 <script type="module">
-  import { initRichEditor } from './dist/index.mjs';
+  import { initRichEditor, getCleanHTML } from './dist/index.mjs';
   const iframe = document.getElementById('editor');
   initRichEditor(iframe);
+  // later, retrieve the cleaned HTML from the editor
+  const html = getCleanHTML();
 </script>
 ```
 
@@ -62,12 +66,14 @@ React (functional component)
 
 ```jsx
 import { useEffect, useRef } from "react";
-import { initRichEditor } from "rich-html-editor";
+import { initRichEditor, getCleanHTML } from "rich-html-editor";
 
 export default function Editor() {
   const iframeRef = useRef(null);
   useEffect(() => {
     if (iframeRef.current) initRichEditor(iframeRef.current);
+    // later, read cleaned HTML from the editor
+    const html = getCleanHTML();
   }, []);
   return (
     <iframe
@@ -86,12 +92,14 @@ Angular (simple component)
 
 // in component.ts
 import { AfterViewInit, ViewChild, ElementRef } from "@angular/core";
-import { initRichEditor } from "rich-html-editor";
+import { initRichEditor, getCleanHTML } from "rich-html-editor";
 
 export class MyEditorComponent implements AfterViewInit {
   @ViewChild("editor") editor!: ElementRef<HTMLIFrameElement>;
   ngAfterViewInit() {
     initRichEditor(this.editor.nativeElement);
+    // later, obtain cleaned HTML
+    const html = getCleanHTML();
   }
 }
 ```
@@ -104,12 +112,14 @@ Vue 3 (Composition API)
 </template>
 <script setup>
 import { onMounted, ref } from "vue";
-import { initRichEditor } from "rich-html-editor";
+import { initRichEditor, getCleanHTML } from "rich-html-editor";
 
 const editor = ref(null);
 const srcdoc = '<body><div class="editable">Edit me</div></body>';
 onMounted(() => {
   if (editor.value) initRichEditor(editor.value);
+  // later, read cleaned HTML from the editor
+  const html = getCleanHTML();
 });
 </script>
 ```

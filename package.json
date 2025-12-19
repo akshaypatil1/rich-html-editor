@@ -1,6 +1,6 @@
 {
   "name": "rich-html-editor",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Framework-agnostic rich HTML editor",
   "author": "akshaypatil1",
   "license": "MIT",
@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/akshaypatil1/rich-html-editor/issues"
   },
-  "homepage": "https://github.com/akshaypatil1/rich-html-editor#readme",
+  "homepage": "https://www.npmjs.com/package/rich-html-editor",
   "main": "dist/index.cjs.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-12-19
+
+### Changed
+
+- Refactor: Split the toolbar implementation into smaller modules (`toolbar/render.ts`, `toolbar/buttons.ts`, `toolbar/selects.ts`, `toolbar/color.ts`, `toolbar/overflow.ts`, `toolbar/navigation.ts`) to improve maintainability and make adding features (e.g., lists) easier.
+
+### Fixed
+
+- TypeScript: fixed event typing and import issues introduced during refactor; updated internal helper usage to avoid runtime globals.
+
+### Notes
+
+- Public API unchanged (`src/toolbar/toolbar.ts` still re-exports `injectToolbar`).
+
 ## [0.2.0] - 2025-12-18
 
 ### Added
@@ -78,10 +92,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - URL and HTML sanitization improvements to reduce XSS risk
-
-### Performance
-
-- Undo/redo snapshot limit is configurable to avoid unbounded memory growth
 
 ## Notes for Contributors
 

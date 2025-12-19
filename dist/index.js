@@ -761,219 +761,76 @@ function injectStyles(doc) {
   styleEl.textContent = css;
 }
 
-// src/toolbar/toolbar.ts
+// src/toolbar/render.ts
 init_constants();
-function injectToolbar(doc, options) {
-  const existing = doc.getElementById(TOOLBAR_ID);
-  if (existing) existing.remove();
-  const toolbar = doc.createElement("div");
-  toolbar.id = TOOLBAR_ID;
-  toolbar.setAttribute("role", "toolbar");
-  toolbar.setAttribute("aria-label", "Rich text editor toolbar");
-  function makeButton(label, title, command, value, isActive, disabled) {
-    const btn = doc.createElement("button");
-    btn.type = "button";
-    if (label && label.trim().startsWith("<")) {
-      btn.innerHTML = label;
-    } else {
-      btn.textContent = label;
-    }
-    btn.title = title;
-    btn.setAttribute("aria-label", title);
-    if (typeof isActive !== "undefined")
-      btn.setAttribute("aria-pressed", String(!!isActive));
-    btn.tabIndex = 0;
-    if (disabled) btn.disabled = true;
-    btn.onclick = () => options.onCommand(command, value);
-    btn.addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter" || ev.key === " ") {
-        ev.preventDefault();
-        btn.click();
-      }
-    });
-    return btn;
-  }
-  function makeSelect(title, command, optionsList, initialValue) {
-    const select = doc.createElement("select");
-    select.title = title;
-    select.setAttribute("aria-label", title);
-    select.appendChild(new Option(title, "", true, true));
-    for (const opt of optionsList) {
-      select.appendChild(new Option(opt.label, opt.value));
-    }
+
+// src/toolbar/color.ts
+function makeColorInput(doc, options, title, command, initialColor) {
+  const input = doc.createElement("input");
+  input.type = "color";
+  input.className = "toolbar-color-input";
+  const wrapper = doc.createElement("label");
+  wrapper.className = "color-label";
+  wrapper.appendChild(doc.createTextNode(title + " "));
+  wrapper.appendChild(input);
+  let savedRange = null;
+  input.addEventListener("pointerdown", () => {
+    const s = doc.getSelection();
+    if (s && s.rangeCount) savedRange = s.getRangeAt(0).cloneRange();
+  });
+  input.onchange = (e) => {
     try {
-      if (initialValue) select.value = initialValue;
+      const s = doc.getSelection();
+      if (savedRange && s) {
+        s.removeAllRanges();
+        s.addRange(savedRange);
+      }
+    } catch (err) {
+    }
+    options.onCommand(command, e.target.value);
+    savedRange = null;
+  };
+  function rgbToHex(input2) {
+    if (!input2) return null;
+    const v = input2.trim();
+    if (v.startsWith("#")) {
+      if (v.length === 4) {
+        return ("#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3]).toLowerCase();
+      }
+      return v.toLowerCase();
+    }
+    const rgbMatch = v.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (rgbMatch) {
+      const r = Number(rgbMatch[1]);
+      const g = Number(rgbMatch[2]);
+      const b = Number(rgbMatch[3]);
+      const hex = "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("").toLowerCase();
+      return hex;
+    }
+    return null;
+  }
+  const setColor = (val) => {
+    if (!val) return;
+    const hex = rgbToHex(val) || val;
+    try {
+      if (hex && hex.startsWith("#") && input.value !== hex) {
+        input.value = hex;
+      }
     } catch (e) {
     }
-    select.onchange = (e) => {
-      const val = e.target.value;
-      options.onCommand(command, val);
-      select.selectedIndex = 0;
-    };
-    return select;
-  }
-  function makeColorInput(title, command, initialColor) {
-    const input = doc.createElement("input");
-    input.type = "color";
-    input.className = "toolbar-color-input";
-    const wrapper = doc.createElement("label");
-    wrapper.className = "color-label";
-    wrapper.appendChild(doc.createTextNode(title + " "));
-    wrapper.appendChild(input);
-    let savedRange = null;
-    input.addEventListener("pointerdown", () => {
-      const s = doc.getSelection();
-      if (s && s.rangeCount) savedRange = s.getRangeAt(0).cloneRange();
-    });
-    input.onchange = (e) => {
-      try {
-        const s = doc.getSelection();
-        if (savedRange && s) {
-          s.removeAllRanges();
-          s.addRange(savedRange);
-        }
-      } catch (err) {
-      }
-      options.onCommand(command, e.target.value);
-      savedRange = null;
-    };
-    function rgbToHex(input2) {
-      if (!input2) return null;
-      const v = input2.trim();
-      if (v.startsWith("#")) {
-        if (v.length === 4) {
-          return ("#" + v[1] + v[1] + v[2] + v[2] + v[3] + v[3]).toLowerCase();
-        }
-        return v.toLowerCase();
-      }
-      const rgbMatch = v.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-      if (rgbMatch) {
-        const r = Number(rgbMatch[1]);
-        const g = Number(rgbMatch[2]);
-        const b = Number(rgbMatch[3]);
-        const hex = "#" + [r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("").toLowerCase();
-        return hex;
-      }
-      return null;
-    }
-    const setColor = (val) => {
-      if (!val) return;
-      const hex = rgbToHex(val) || val;
-      try {
-        if (hex && hex.startsWith("#") && input.value !== hex) {
-          input.value = hex;
-        }
-      } catch (e) {
-      }
-    };
-    if (initialColor) setColor(initialColor);
-    input.addEventListener("input", (e) => {
-      const val = e.target.value;
-      setColor(val);
-    });
-    input.title = title;
-    input.setAttribute("aria-label", title);
-    return wrapper;
-  }
-  const format = options.getFormatState();
-  function makeGroup() {
-    const g = doc.createElement("div");
-    g.className = "toolbar-group";
-    return g;
-  }
-  function makeSep() {
-    const s = doc.createElement("div");
-    s.className = "toolbar-sep";
-    return s;
-  }
-  const undoBtn = makeButton(
-    LABEL_UNDO,
-    "Undo",
-    "undo",
-    void 0,
-    false,
-    !options.canUndo()
-  );
-  undoBtn.onclick = () => options.onUndo();
-  const redoBtn = makeButton(
-    LABEL_REDO,
-    "Redo",
-    "redo",
-    void 0,
-    false,
-    !options.canRedo()
-  );
-  redoBtn.onclick = () => options.onRedo();
-  const grp1 = makeGroup();
-  grp1.appendChild(undoBtn);
-  grp1.appendChild(redoBtn);
-  toolbar.appendChild(grp1);
-  toolbar.appendChild(makeSep());
-  const grp2 = makeGroup();
-  grp2.className = "toolbar-group collapse-on-small";
-  grp2.appendChild(
-    makeSelect(
-      "Format",
-      "formatBlock",
-      FORMAT_OPTIONS,
-      format.formatBlock
-    )
-  );
-  grp2.appendChild(
-    makeSelect("Font", "fontName", FONT_OPTIONS, format.fontName)
-  );
-  grp2.appendChild(
-    makeSelect("Size", "fontSize", SIZE_OPTIONS, format.fontSize)
-  );
-  toolbar.appendChild(grp2);
-  toolbar.appendChild(makeSep());
-  const grp3 = makeGroup();
-  grp3.appendChild(
-    makeButton(LABEL_BOLD, "Bold", "bold", void 0, format.bold)
-  );
-  grp3.appendChild(
-    makeButton(LABEL_ITALIC, "Italic", "italic", void 0, format.italic)
-  );
-  grp3.appendChild(
-    makeButton(
-      LABEL_UNDERLINE,
-      "Underline",
-      "underline",
-      void 0,
-      format.underline
-    )
-  );
-  grp3.appendChild(makeButton(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
-  toolbar.appendChild(grp3);
-  toolbar.appendChild(makeSep());
-  const grp4 = makeGroup();
-  grp4.appendChild(makeButton(LABEL_ALIGN_LEFT, "Align left", "align", "left"));
-  grp4.appendChild(
-    makeButton(LABEL_ALIGN_CENTER, "Align center", "align", "center")
-  );
-  grp4.appendChild(
-    makeButton(LABEL_ALIGN_RIGHT, "Align right", "align", "right")
-  );
-  toolbar.appendChild(grp4);
-  toolbar.appendChild(makeSep());
-  const grp5 = makeGroup();
-  grp5.className = "toolbar-group collapse-on-small";
-  grp5.appendChild(
-    makeColorInput("Text color", "foreColor", format.foreColor)
-  );
-  grp5.appendChild(
-    makeColorInput(
-      "Highlight color",
-      "hiliteColor",
-      format.hiliteColor
-    )
-  );
-  toolbar.appendChild(grp5);
-  toolbar.appendChild(makeSep());
-  const grp6 = makeGroup();
-  grp6.className = "toolbar-group collapse-on-small";
-  grp6.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
-  toolbar.appendChild(grp6);
+  };
+  if (initialColor) setColor(initialColor);
+  input.addEventListener("input", (e) => {
+    const val = e.target.value;
+    setColor(val);
+  });
+  input.title = title;
+  input.setAttribute("aria-label", title);
+  return wrapper;
+}
+
+// src/toolbar/overflow.ts
+function setupOverflow(doc, toolbar, options, format, helpers) {
   const overflowBtn = doc.createElement("button");
   overflowBtn.type = "button";
   overflowBtn.className = "toolbar-overflow-btn";
@@ -1000,7 +857,7 @@ function injectToolbar(doc, options) {
     overflowBtn.setAttribute("aria-expanded", "false");
     overflowBtn.focus();
   }
-  overflowBtn.addEventListener("click", (e) => {
+  overflowBtn.addEventListener("click", () => {
     if (overflowMenu.hidden) openOverflow();
     else closeOverflow();
   });
@@ -1027,35 +884,105 @@ function injectToolbar(doc, options) {
     }
   });
   overflowMenu.appendChild(
-    makeSelect(
+    helpers.makeSelect(
       "Format",
       "formatBlock",
-      FORMAT_OPTIONS,
+      window.RHE_FORMAT_OPTIONS || [],
       format.formatBlock
     )
   );
   overflowMenu.appendChild(
-    makeSelect("Font", "fontName", FONT_OPTIONS, format.fontName)
+    helpers.makeSelect(
+      "Font",
+      "fontName",
+      window.RHE_FONT_OPTIONS || [],
+      format.fontName
+    )
   );
   overflowMenu.appendChild(
-    makeSelect("Size", "fontSize", SIZE_OPTIONS, format.fontSize)
+    helpers.makeSelect(
+      "Size",
+      "fontSize",
+      window.RHE_SIZE_OPTIONS || [],
+      format.fontSize
+    )
   );
   overflowMenu.appendChild(
-    makeColorInput("Text color", "foreColor", format.foreColor)
+    helpers.makeColorInput("Text color", "foreColor", format.foreColor)
   );
   overflowMenu.appendChild(
-    makeColorInput(
+    helpers.makeColorInput(
       "Highlight color",
       "hiliteColor",
       format.hiliteColor
     )
   );
-  overflowMenu.appendChild(makeButton(LABEL_LINK, "Insert link", "link"));
-  const overflowWrap = makeGroup();
+  overflowMenu.appendChild(helpers.makeButton("Link", "Insert link", "link"));
+  const overflowWrap = helpers.makeGroup();
   overflowWrap.className = "toolbar-group toolbar-overflow-wrap";
   overflowWrap.appendChild(overflowBtn);
   overflowWrap.appendChild(overflowMenu);
   toolbar.appendChild(overflowWrap);
+}
+
+// src/toolbar/buttons.ts
+function makeButton(doc, options, label, title, command, value, isActive, disabled) {
+  const btn = doc.createElement("button");
+  btn.type = "button";
+  if (label && label.trim().startsWith("<")) {
+    btn.innerHTML = label;
+  } else {
+    btn.textContent = label;
+  }
+  btn.title = title;
+  btn.setAttribute("aria-label", title);
+  if (typeof isActive !== "undefined")
+    btn.setAttribute("aria-pressed", String(!!isActive));
+  btn.tabIndex = 0;
+  if (disabled) btn.disabled = true;
+  btn.onclick = () => options.onCommand(command, value);
+  btn.addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter" || ev.key === " ") {
+      ev.preventDefault();
+      btn.click();
+    }
+  });
+  return btn;
+}
+function makeGroup(doc) {
+  const g = doc.createElement("div");
+  g.className = "toolbar-group";
+  return g;
+}
+function makeSep(doc) {
+  const s = doc.createElement("div");
+  s.className = "toolbar-sep";
+  return s;
+}
+
+// src/toolbar/selects.ts
+function makeSelect(doc, options, title, command, optionsList, initialValue) {
+  const select = doc.createElement("select");
+  select.title = title;
+  select.setAttribute("aria-label", title);
+  select.appendChild(new Option(title, "", true, true));
+  for (const opt of optionsList) {
+    select.appendChild(new Option(opt.label, opt.value));
+  }
+  try {
+    if (initialValue) select.value = initialValue;
+  } catch (e) {
+  }
+  select.onchange = (e) => {
+    const val = e.target.value;
+    options.onCommand(command, val);
+    select.selectedIndex = 0;
+  };
+  return select;
+}
+
+// src/toolbar/navigation.ts
+function setupNavigation(toolbar) {
   toolbar.addEventListener("keydown", (e) => {
     const focusable = Array.from(
       toolbar.querySelectorAll("button, select, input, [tabindex]")
@@ -1078,6 +1005,140 @@ function injectToolbar(doc, options) {
       focusable[focusable.length - 1].focus();
     }
   });
+}
+
+// src/toolbar/render.ts
+function injectToolbar(doc, options) {
+  const existing = doc.getElementById(TOOLBAR_ID);
+  if (existing) existing.remove();
+  const toolbar = doc.createElement("div");
+  toolbar.id = TOOLBAR_ID;
+  toolbar.setAttribute("role", "toolbar");
+  toolbar.setAttribute("aria-label", "Rich text editor toolbar");
+  const makeButton2 = (label, title, command, value, isActive, disabled) => makeButton(
+    doc,
+    { onCommand: options.onCommand },
+    label,
+    title,
+    command,
+    value,
+    isActive,
+    disabled
+  );
+  const makeSelect2 = (title, command, optionsList, initialValue) => makeSelect(
+    doc,
+    { onCommand: options.onCommand },
+    title,
+    command,
+    optionsList,
+    initialValue
+  );
+  const format = options.getFormatState();
+  const makeGroup2 = () => makeGroup(doc);
+  const makeSep2 = () => makeSep(doc);
+  const undoBtn = makeButton2(
+    LABEL_UNDO,
+    "Undo",
+    "undo",
+    void 0,
+    false,
+    !options.canUndo()
+  );
+  undoBtn.onclick = () => options.onUndo();
+  const redoBtn = makeButton2(
+    LABEL_REDO,
+    "Redo",
+    "redo",
+    void 0,
+    false,
+    !options.canRedo()
+  );
+  redoBtn.onclick = () => options.onRedo();
+  const grp1 = makeGroup2();
+  grp1.appendChild(undoBtn);
+  grp1.appendChild(redoBtn);
+  toolbar.appendChild(grp1);
+  toolbar.appendChild(makeSep2());
+  const grp2 = makeGroup2();
+  grp2.className = "toolbar-group collapse-on-small";
+  grp2.appendChild(
+    makeSelect2(
+      "Format",
+      "formatBlock",
+      FORMAT_OPTIONS,
+      format.formatBlock
+    )
+  );
+  grp2.appendChild(
+    makeSelect2("Font", "fontName", FONT_OPTIONS, format.fontName)
+  );
+  grp2.appendChild(
+    makeSelect2("Size", "fontSize", SIZE_OPTIONS, format.fontSize)
+  );
+  toolbar.appendChild(grp2);
+  toolbar.appendChild(makeSep2());
+  const grp3 = makeGroup2();
+  grp3.appendChild(
+    makeButton2(LABEL_BOLD, "Bold", "bold", void 0, format.bold)
+  );
+  grp3.appendChild(
+    makeButton2(LABEL_ITALIC, "Italic", "italic", void 0, format.italic)
+  );
+  grp3.appendChild(
+    makeButton2(
+      LABEL_UNDERLINE,
+      "Underline",
+      "underline",
+      void 0,
+      format.underline
+    )
+  );
+  grp3.appendChild(makeButton2(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  toolbar.appendChild(grp3);
+  toolbar.appendChild(makeSep2());
+  const grp4 = makeGroup2();
+  grp4.appendChild(makeButton2(LABEL_ALIGN_LEFT, "Align left", "align", "left"));
+  grp4.appendChild(
+    makeButton2(LABEL_ALIGN_CENTER, "Align center", "align", "center")
+  );
+  grp4.appendChild(
+    makeButton2(LABEL_ALIGN_RIGHT, "Align right", "align", "right")
+  );
+  toolbar.appendChild(grp4);
+  toolbar.appendChild(makeSep2());
+  const grp5 = makeGroup2();
+  grp5.className = "toolbar-group collapse-on-small";
+  grp5.appendChild(
+    makeColorInput(
+      doc,
+      options,
+      "Text color",
+      "foreColor",
+      format.foreColor
+    )
+  );
+  grp5.appendChild(
+    makeColorInput(
+      doc,
+      options,
+      "Highlight color",
+      "hiliteColor",
+      format.hiliteColor
+    )
+  );
+  toolbar.appendChild(grp5);
+  toolbar.appendChild(makeSep2());
+  const grp6 = makeGroup2();
+  grp6.className = "toolbar-group collapse-on-small";
+  grp6.appendChild(makeButton2(LABEL_LINK, "Insert link", "link"));
+  toolbar.appendChild(grp6);
+  setupOverflow(doc, toolbar, options, format, {
+    makeSelect: makeSelect2,
+    makeColorInput: (title, command, initial) => makeColorInput(doc, options, title, command, initial),
+    makeButton: makeButton2,
+    makeGroup: makeGroup2
+  });
+  setupNavigation(toolbar);
   doc.body.insertBefore(toolbar, doc.body.firstChild);
 }
 

@@ -1,5 +1,4 @@
 import { _getDoc, pushStandaloneSnapshot } from "./state";
-import { sanitizeHtml } from "../utils/sanitize";
 import { sanitizeURL } from "./sanitizeURL";
 
 export function handleToolbarCommand(command: string, value?: string) {
@@ -86,6 +85,9 @@ export function applyStandaloneCommand(command: string, value?: string) {
         // Wrap selection in the block tag
         wrapSelectionWithElement(doc, tag);
       }
+    } else if (command === "unorderedList" || command === "orderedList") {
+      const tag = command === "unorderedList" ? "ul" : "ol";
+      toggleList(doc, tag);
     }
     pushStandaloneSnapshot();
   } catch (error) {
@@ -124,6 +126,66 @@ function wrapSelectionWithElement(
   sel.removeAllRanges();
   const newRange = doc.createRange();
   newRange.selectNodeContents(wrapper);
+  sel.addRange(newRange);
+}
+
+function toggleList(doc: Document, listTag: "ul" | "ol") {
+  const sel = doc.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const node = sel.anchorNode || null;
+  const block = findBlockAncestor(node);
+
+  // If we're inside an LI
+  if (block && block.tagName === "LI" && block.parentElement) {
+    const parentList = block.parentElement as HTMLElement;
+    const parentTag = parentList.tagName.toLowerCase();
+    if (parentTag === listTag) {
+      // unwrap list: convert each LI into a P and replace the list
+      const frag = doc.createDocumentFragment();
+      Array.from(parentList.children).forEach((li) => {
+        const p = doc.createElement("p");
+        while (li.firstChild) p.appendChild(li.firstChild);
+        frag.appendChild(p);
+      });
+      parentList.parentElement?.replaceChild(frag, parentList);
+      return;
+    } else {
+      // change list type (ul <-> ol)
+      const newList = doc.createElement(listTag);
+      while (parentList.firstChild) newList.appendChild(parentList.firstChild);
+      parentList.parentElement?.replaceChild(newList, parentList);
+      return;
+    }
+  }
+
+  // Not inside an existing list: wrap selection in a new list with a single LI per block
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) {
+    const list = doc.createElement(listTag);
+    const li = doc.createElement("li");
+    const zw = doc.createTextNode("\u200B");
+    li.appendChild(zw);
+    list.appendChild(li);
+    range.insertNode(list);
+    // place cursor inside the zero-width text node
+    const newRange = doc.createRange();
+    newRange.setStart(zw, 1);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+    return;
+  }
+
+  // Non-collapsed: extract contents and wrap in a single LI (preserve structure)
+  const content = range.extractContents();
+  const list = doc.createElement(listTag);
+  const li = doc.createElement("li");
+  li.appendChild(content);
+  list.appendChild(li);
+  range.insertNode(list);
+  sel.removeAllRanges();
+  const newRange = doc.createRange();
+  newRange.selectNodeContents(li);
   sel.addRange(newRange);
 }
 

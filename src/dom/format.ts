@@ -17,6 +17,7 @@ export function computeFormatState(doc: Document): {
   fontName: string | null;
   fontSize: string | null;
   formatBlock: string | null;
+  listType: string | null;
 } {
   try {
     const s = doc.getSelection();
@@ -36,6 +37,7 @@ export function computeFormatState(doc: Document): {
         fontName: null,
         fontSize: null,
         formatBlock: null,
+        listType: null,
       };
     const computed = doc.defaultView?.getComputedStyle(el) as
       | CSSStyleDeclaration
@@ -99,6 +101,19 @@ export function computeFormatState(doc: Document): {
       blockEl = blockEl.parentElement as HTMLElement | null;
     }
     const formatBlock = blockEl ? blockEl.tagName.toLowerCase() : null;
+    // detect if selection is inside a list and which type
+    let listType: string | null = null;
+    try {
+      if (blockEl && blockEl.tagName === "LI") {
+        const list = blockEl.closest("ul,ol") as HTMLElement | null;
+        if (list) listType = list.tagName.toLowerCase();
+      } else {
+        const possible = el.closest("ul,ol") as HTMLElement | null;
+        if (possible) listType = possible.tagName.toLowerCase();
+      }
+    } catch (e) {
+      listType = null;
+    }
 
     return {
       bold,
@@ -109,6 +124,7 @@ export function computeFormatState(doc: Document): {
       fontName,
       fontSize,
       formatBlock,
+      listType,
     };
   } catch (err) {
     return {
@@ -120,6 +136,7 @@ export function computeFormatState(doc: Document): {
       fontName: null,
       fontSize: null,
       formatBlock: null,
+      listType: null,
     };
   }
 }

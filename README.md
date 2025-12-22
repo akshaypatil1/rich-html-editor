@@ -14,9 +14,11 @@ A framework-agnostic, plug-and-play rich HTML editor library for adding WYSIWYG 
 - 🔒 **Security** - URL sanitization to prevent XSS attacks
 - 📦 **Small Bundle** - ~13KB minified (ESM format)
 
+Release: **v1.0.0** — Stable release (2025-12-22) including headings, lists (UL/OL), full toolbar formatting, color pickers, link sanitization, and undo/redo.
+
 ## Changelog
 
-See the full changelog in [CHANGELOG.md](CHANGELOG.md). Recent fixes and UX improvements are documented under the Unreleased section.
+See the full changelog in [CHANGELOG.md](CHANGELOG.md). Latest release: **v1.0.0** (2025-12-22).
 
 ## Installation
 

@@ -22,6 +22,8 @@ import {
   LABEL_ITALIC,
   LABEL_UNDERLINE,
   LABEL_STRIKETHROUGH,
+  LABEL_UNORDERED_LIST,
+  LABEL_ORDERED_LIST,
   LABEL_UNDO,
   LABEL_REDO,
   LABEL_LINK,
@@ -181,6 +183,24 @@ export function injectToolbar(
     )
   );
   grp3.appendChild(makeButton(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  grp3.appendChild(
+    makeButton(
+      LABEL_UNORDERED_LIST,
+      "Unordered list",
+      "unorderedList",
+      undefined,
+      (format as any).listType === "ul"
+    )
+  );
+  grp3.appendChild(
+    makeButton(
+      LABEL_ORDERED_LIST,
+      "Ordered list",
+      "orderedList",
+      undefined,
+      (format as any).listType === "ol"
+    )
+  );
   toolbar.appendChild(grp3);
   toolbar.appendChild(makeSep());
 

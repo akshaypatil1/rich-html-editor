@@ -28,6 +28,26 @@ export const LABEL_STRIKETHROUGH = "<s>S</s>";
 export const LABEL_UNDO = "↺";
 export const LABEL_REDO = "↻";
 export const LABEL_LINK = "🔗";
+export const LABEL_UNORDERED_LIST = `
+  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <circle cx="3" cy="4" r="1" fill="currentColor" />
+    <rect x="6" y="3" width="9" height="2" rx="0.5" fill="currentColor" />
+    <circle cx="3" cy="8" r="1" fill="currentColor" />
+    <rect x="6" y="7" width="9" height="2" rx="0.5" fill="currentColor" />
+    <circle cx="3" cy="12" r="1" fill="currentColor" />
+    <rect x="6" y="11" width="9" height="2" rx="0.5" fill="currentColor" />
+  </svg>
+`;
+export const LABEL_ORDERED_LIST = `
+  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <text x="1" y="4" font-size="4" fill="currentColor">1.</text>
+    <rect x="6" y="3" width="9" height="2" rx="0.5" fill="currentColor" />
+    <text x="1" y="8" font-size="4" fill="currentColor">2.</text>
+    <rect x="6" y="7" width="9" height="2" rx="0.5" fill="currentColor" />
+    <text x="1" y="12" font-size="4" fill="currentColor">3.</text>
+    <rect x="6" y="11" width="9" height="2" rx="0.5" fill="currentColor" />
+  </svg>
+`;
 export const LABEL_ALIGN_LEFT = `
 	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 		<rect x="1" y="2" width="10" height="2" rx="0.5" fill="currentColor" />

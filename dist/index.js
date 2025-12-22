@@ -91,7 +91,7 @@ var init_events = __esm({
 });
 
 // src/core/constants.ts
-var TOOLBAR_ID, STYLE_ID, CLASS_EDITABLE, CLASS_ACTIVE, DEFAULT_MAX_STACK, TOOLBAR_BG, TOOLBAR_BORDER, BUTTON_BORDER, BUTTON_ACTIVE_BG, BUTTON_BG, BUTTON_COLOR, INFO_COLOR, HOVER_OUTLINE, ACTIVE_OUTLINE, LABEL_BOLD, LABEL_ITALIC, LABEL_UNDERLINE, LABEL_STRIKETHROUGH, LABEL_UNDO, LABEL_REDO, LABEL_LINK, LABEL_ALIGN_LEFT, LABEL_ALIGN_CENTER, LABEL_ALIGN_RIGHT, FONT_OPTIONS, SIZE_OPTIONS, FORMAT_OPTIONS;
+var TOOLBAR_ID, STYLE_ID, CLASS_EDITABLE, CLASS_ACTIVE, DEFAULT_MAX_STACK, TOOLBAR_BG, TOOLBAR_BORDER, BUTTON_BORDER, BUTTON_ACTIVE_BG, BUTTON_BG, BUTTON_COLOR, INFO_COLOR, HOVER_OUTLINE, ACTIVE_OUTLINE, LABEL_BOLD, LABEL_ITALIC, LABEL_UNDERLINE, LABEL_STRIKETHROUGH, LABEL_UNDO, LABEL_REDO, LABEL_LINK, LABEL_UNORDERED_LIST, LABEL_ORDERED_LIST, LABEL_ALIGN_LEFT, LABEL_ALIGN_CENTER, LABEL_ALIGN_RIGHT, FONT_OPTIONS, SIZE_OPTIONS, FORMAT_OPTIONS;
 var init_constants = __esm({
   "src/core/constants.ts"() {
     "use strict";
@@ -116,6 +116,26 @@ var init_constants = __esm({
     LABEL_UNDO = "\u21BA";
     LABEL_REDO = "\u21BB";
     LABEL_LINK = "\u{1F517}";
+    LABEL_UNORDERED_LIST = `
+  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <circle cx="3" cy="4" r="1" fill="currentColor" />
+    <rect x="6" y="3" width="9" height="2" rx="0.5" fill="currentColor" />
+    <circle cx="3" cy="8" r="1" fill="currentColor" />
+    <rect x="6" y="7" width="9" height="2" rx="0.5" fill="currentColor" />
+    <circle cx="3" cy="12" r="1" fill="currentColor" />
+    <rect x="6" y="11" width="9" height="2" rx="0.5" fill="currentColor" />
+  </svg>
+`;
+    LABEL_ORDERED_LIST = `
+  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <text x="1" y="4" font-size="4" fill="currentColor">1.</text>
+    <rect x="6" y="3" width="9" height="2" rx="0.5" fill="currentColor" />
+    <text x="1" y="8" font-size="4" fill="currentColor">2.</text>
+    <rect x="6" y="7" width="9" height="2" rx="0.5" fill="currentColor" />
+    <text x="1" y="12" font-size="4" fill="currentColor">3.</text>
+    <rect x="6" y="11" width="9" height="2" rx="0.5" fill="currentColor" />
+  </svg>
+`;
     LABEL_ALIGN_LEFT = `
 	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 		<rect x="1" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
@@ -1094,6 +1114,24 @@ function injectToolbar(doc, options) {
     )
   );
   grp3.appendChild(makeButton2(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  grp3.appendChild(
+    makeButton2(
+      LABEL_UNORDERED_LIST,
+      "Unordered list",
+      "unorderedList",
+      void 0,
+      format.listType === "ul"
+    )
+  );
+  grp3.appendChild(
+    makeButton2(
+      LABEL_ORDERED_LIST,
+      "Ordered list",
+      "orderedList",
+      void 0,
+      format.listType === "ol"
+    )
+  );
   toolbar.appendChild(grp3);
   toolbar.appendChild(makeSep2());
   const grp4 = makeGroup2();
@@ -1181,7 +1219,8 @@ function computeFormatState(doc) {
         hiliteColor: null,
         fontName: null,
         fontSize: null,
-        formatBlock: null
+        formatBlock: null,
+        listType: null
       };
     const computed = (_a = doc.defaultView) == null ? void 0 : _a.getComputedStyle(el);
     const bold = !!(el.closest("strong, b") || computed && (computed.fontWeight === "700" || Number(computed.fontWeight) >= 700));
@@ -1217,6 +1256,18 @@ function computeFormatState(doc) {
       blockEl = blockEl.parentElement;
     }
     const formatBlock = blockEl ? blockEl.tagName.toLowerCase() : null;
+    let listType = null;
+    try {
+      if (blockEl && blockEl.tagName === "LI") {
+        const list = blockEl.closest("ul,ol");
+        if (list) listType = list.tagName.toLowerCase();
+      } else {
+        const possible = el.closest("ul,ol");
+        if (possible) listType = possible.tagName.toLowerCase();
+      }
+    } catch (e) {
+      listType = null;
+    }
     return {
       bold,
       italic,
@@ -1225,7 +1276,8 @@ function computeFormatState(doc) {
       hiliteColor,
       fontName,
       fontSize,
-      formatBlock
+      formatBlock,
+      listType
     };
   } catch (err) {
     return {
@@ -1236,7 +1288,8 @@ function computeFormatState(doc) {
       hiliteColor: null,
       fontName: null,
       fontSize: null,
-      formatBlock: null
+      formatBlock: null,
+      listType: null
     };
   }
 }
@@ -1632,6 +1685,9 @@ function applyStandaloneCommand(command, value) {
       } else {
         wrapSelectionWithElement(doc, tag);
       }
+    } else if (command === "unorderedList" || command === "orderedList") {
+      const tag = command === "unorderedList" ? "ul" : "ol";
+      toggleList(doc, tag);
     }
     pushStandaloneSnapshot();
   } catch (error) {
@@ -1665,6 +1721,57 @@ function wrapSelectionWithElement(doc, tagName, style) {
   sel.removeAllRanges();
   const newRange = doc.createRange();
   newRange.selectNodeContents(wrapper);
+  sel.addRange(newRange);
+}
+function toggleList(doc, listTag) {
+  var _a, _b;
+  const sel = doc.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const node = sel.anchorNode || null;
+  const block = findBlockAncestor(node);
+  if (block && block.tagName === "LI" && block.parentElement) {
+    const parentList = block.parentElement;
+    const parentTag = parentList.tagName.toLowerCase();
+    if (parentTag === listTag) {
+      const frag = doc.createDocumentFragment();
+      Array.from(parentList.children).forEach((li2) => {
+        const p = doc.createElement("p");
+        while (li2.firstChild) p.appendChild(li2.firstChild);
+        frag.appendChild(p);
+      });
+      (_a = parentList.parentElement) == null ? void 0 : _a.replaceChild(frag, parentList);
+      return;
+    } else {
+      const newList = doc.createElement(listTag);
+      while (parentList.firstChild) newList.appendChild(parentList.firstChild);
+      (_b = parentList.parentElement) == null ? void 0 : _b.replaceChild(newList, parentList);
+      return;
+    }
+  }
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) {
+    const list2 = doc.createElement(listTag);
+    const li2 = doc.createElement("li");
+    const zw = doc.createTextNode("\u200B");
+    li2.appendChild(zw);
+    list2.appendChild(li2);
+    range.insertNode(list2);
+    const newRange2 = doc.createRange();
+    newRange2.setStart(zw, 1);
+    newRange2.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange2);
+    return;
+  }
+  const content = range.extractContents();
+  const list = doc.createElement(listTag);
+  const li = doc.createElement("li");
+  li.appendChild(content);
+  list.appendChild(li);
+  range.insertNode(list);
+  sel.removeAllRanges();
+  const newRange = doc.createRange();
+  newRange.selectNodeContents(li);
   sel.addRange(newRange);
 }
 function findBlockAncestor(node) {
@@ -1806,6 +1913,33 @@ function attachStandaloneHandlers(doc) {
         handleRedo();
         return;
       }
+    },
+    true
+  );
+  doc.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key !== "Enter") return;
+      if (e.shiftKey) return;
+      const sel = doc.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const node = sel.anchorNode;
+      const el = node && node.nodeType === Node.ELEMENT_NODE ? node : node && node.parentElement || null;
+      if (!el) return;
+      const li = el.closest("li");
+      if (!li || !li.parentElement) return;
+      e.preventDefault();
+      const list = li.parentElement;
+      const newLi = doc.createElement("li");
+      const zw = doc.createTextNode("\u200B");
+      newLi.appendChild(zw);
+      if (li.nextSibling) list.insertBefore(newLi, li.nextSibling);
+      else list.appendChild(newLi);
+      const range = doc.createRange();
+      range.setStart(zw, 1);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
     },
     true
   );

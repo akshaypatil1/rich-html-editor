@@ -156,4 +156,40 @@ export function attachStandaloneHandlers(doc: Document) {
     },
     true
   );
+
+  // Ensure Enter in lists creates a new list item (consistent across browsers)
+  doc.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key !== "Enter") return;
+      // Let Shift+Enter behave as a soft-break
+      if (e.shiftKey) return;
+      const sel = doc.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const node = sel.anchorNode;
+      const el =
+        node && node.nodeType === Node.ELEMENT_NODE
+          ? (node as HTMLElement)
+          : (node && (node as Node).parentElement) || null;
+      if (!el) return;
+      const li = el.closest("li") as HTMLElement | null;
+      if (!li || !li.parentElement) return;
+      // Prevent default behavior and insert a new empty <li>
+      e.preventDefault();
+      const list = li.parentElement;
+      const newLi = doc.createElement("li");
+      const zw = doc.createTextNode("\u200B");
+      newLi.appendChild(zw);
+      if (li.nextSibling) list.insertBefore(newLi, li.nextSibling);
+      else list.appendChild(newLi);
+      // place caret inside the new li
+      const range = doc.createRange();
+      range.setStart(zw, 1);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      // push snapshot will be triggered by input event after typing
+    },
+    true
+  );
 }

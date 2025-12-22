@@ -16,10 +16,12 @@ import {
   LABEL_BOLD,
   LABEL_ITALIC,
   LABEL_LINK,
+  LABEL_ORDERED_LIST,
   LABEL_REDO,
   LABEL_STRIKETHROUGH,
   LABEL_UNDERLINE,
   LABEL_UNDO,
+  LABEL_UNORDERED_LIST,
   SIZE_OPTIONS,
   STYLE_ID,
   TOOLBAR_BG,
@@ -37,7 +39,7 @@ import {
   getEditorEventEmitter,
   pushStandaloneSnapshot,
   sanitizeHtml
-} from "./chunk-ZDGUOGND.mjs";
+} from "./chunk-W3ULZ2LR.mjs";
 
 // src/dom/styles.ts
 function injectStyles(doc) {
@@ -647,6 +649,24 @@ function injectToolbar(doc, options) {
     )
   );
   grp3.appendChild(makeButton2(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  grp3.appendChild(
+    makeButton2(
+      LABEL_UNORDERED_LIST,
+      "Unordered list",
+      "unorderedList",
+      void 0,
+      format.listType === "ul"
+    )
+  );
+  grp3.appendChild(
+    makeButton2(
+      LABEL_ORDERED_LIST,
+      "Ordered list",
+      "orderedList",
+      void 0,
+      format.listType === "ol"
+    )
+  );
   toolbar.appendChild(grp3);
   toolbar.appendChild(makeSep2());
   const grp4 = makeGroup2();
@@ -731,7 +751,8 @@ function computeFormatState(doc) {
         hiliteColor: null,
         fontName: null,
         fontSize: null,
-        formatBlock: null
+        formatBlock: null,
+        listType: null
       };
     const computed = (_a = doc.defaultView) == null ? void 0 : _a.getComputedStyle(el);
     const bold = !!(el.closest("strong, b") || computed && (computed.fontWeight === "700" || Number(computed.fontWeight) >= 700));
@@ -767,6 +788,18 @@ function computeFormatState(doc) {
       blockEl = blockEl.parentElement;
     }
     const formatBlock = blockEl ? blockEl.tagName.toLowerCase() : null;
+    let listType = null;
+    try {
+      if (blockEl && blockEl.tagName === "LI") {
+        const list = blockEl.closest("ul,ol");
+        if (list) listType = list.tagName.toLowerCase();
+      } else {
+        const possible = el.closest("ul,ol");
+        if (possible) listType = possible.tagName.toLowerCase();
+      }
+    } catch (e) {
+      listType = null;
+    }
     return {
       bold,
       italic,
@@ -775,7 +808,8 @@ function computeFormatState(doc) {
       hiliteColor,
       fontName,
       fontSize,
-      formatBlock
+      formatBlock,
+      listType
     };
   } catch (err) {
     return {
@@ -786,7 +820,8 @@ function computeFormatState(doc) {
       hiliteColor: null,
       fontName: null,
       fontSize: null,
-      formatBlock: null
+      formatBlock: null,
+      listType: null
     };
   }
 }
@@ -1179,6 +1214,9 @@ function applyStandaloneCommand(command, value) {
       } else {
         wrapSelectionWithElement(doc, tag);
       }
+    } else if (command === "unorderedList" || command === "orderedList") {
+      const tag = command === "unorderedList" ? "ul" : "ol";
+      toggleList(doc, tag);
     }
     pushStandaloneSnapshot();
   } catch (error) {
@@ -1212,6 +1250,57 @@ function wrapSelectionWithElement(doc, tagName, style) {
   sel.removeAllRanges();
   const newRange = doc.createRange();
   newRange.selectNodeContents(wrapper);
+  sel.addRange(newRange);
+}
+function toggleList(doc, listTag) {
+  var _a, _b;
+  const sel = doc.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const node = sel.anchorNode || null;
+  const block = findBlockAncestor(node);
+  if (block && block.tagName === "LI" && block.parentElement) {
+    const parentList = block.parentElement;
+    const parentTag = parentList.tagName.toLowerCase();
+    if (parentTag === listTag) {
+      const frag = doc.createDocumentFragment();
+      Array.from(parentList.children).forEach((li2) => {
+        const p = doc.createElement("p");
+        while (li2.firstChild) p.appendChild(li2.firstChild);
+        frag.appendChild(p);
+      });
+      (_a = parentList.parentElement) == null ? void 0 : _a.replaceChild(frag, parentList);
+      return;
+    } else {
+      const newList = doc.createElement(listTag);
+      while (parentList.firstChild) newList.appendChild(parentList.firstChild);
+      (_b = parentList.parentElement) == null ? void 0 : _b.replaceChild(newList, parentList);
+      return;
+    }
+  }
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) {
+    const list2 = doc.createElement(listTag);
+    const li2 = doc.createElement("li");
+    const zw = doc.createTextNode("\u200B");
+    li2.appendChild(zw);
+    list2.appendChild(li2);
+    range.insertNode(list2);
+    const newRange2 = doc.createRange();
+    newRange2.setStart(zw, 1);
+    newRange2.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange2);
+    return;
+  }
+  const content = range.extractContents();
+  const list = doc.createElement(listTag);
+  const li = doc.createElement("li");
+  li.appendChild(content);
+  list.appendChild(li);
+  range.insertNode(list);
+  sel.removeAllRanges();
+  const newRange = doc.createRange();
+  newRange.selectNodeContents(li);
   sel.addRange(newRange);
 }
 function findBlockAncestor(node) {
@@ -1355,6 +1444,33 @@ function attachStandaloneHandlers(doc) {
     },
     true
   );
+  doc.addEventListener(
+    "keydown",
+    (e) => {
+      if (e.key !== "Enter") return;
+      if (e.shiftKey) return;
+      const sel = doc.getSelection();
+      if (!sel || !sel.rangeCount) return;
+      const node = sel.anchorNode;
+      const el = node && node.nodeType === Node.ELEMENT_NODE ? node : node && node.parentElement || null;
+      if (!el) return;
+      const li = el.closest("li");
+      if (!li || !li.parentElement) return;
+      e.preventDefault();
+      const list = li.parentElement;
+      const newLi = doc.createElement("li");
+      const zw = doc.createTextNode("\u200B");
+      newLi.appendChild(zw);
+      if (li.nextSibling) list.insertBefore(newLi, li.nextSibling);
+      else list.appendChild(newLi);
+      const range = doc.createRange();
+      range.setStart(zw, 1);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    },
+    true
+  );
 }
 
 // src/core/editor.ts
@@ -1375,7 +1491,7 @@ function initRichEditor(iframe, config) {
     _setRedoStack([]);
     _setCurrentEditable(null);
     if (config == null ? void 0 : config.maxStackSize) {
-      import("./state-CZIMHTJ3.mjs").then((m) => m.setMaxStackSize(config.maxStackSize)).catch(() => {
+      import("./state-DA3PGFTN.mjs").then((m) => m.setMaxStackSize(config.maxStackSize)).catch(() => {
       });
     }
     attachStandaloneHandlers(doc);

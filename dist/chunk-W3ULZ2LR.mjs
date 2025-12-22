@@ -74,6 +74,26 @@ var LABEL_STRIKETHROUGH = "<s>S</s>";
 var LABEL_UNDO = "\u21BA";
 var LABEL_REDO = "\u21BB";
 var LABEL_LINK = "\u{1F517}";
+var LABEL_UNORDERED_LIST = `
+  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <circle cx="3" cy="4" r="1" fill="currentColor" />
+    <rect x="6" y="3" width="9" height="2" rx="0.5" fill="currentColor" />
+    <circle cx="3" cy="8" r="1" fill="currentColor" />
+    <rect x="6" y="7" width="9" height="2" rx="0.5" fill="currentColor" />
+    <circle cx="3" cy="12" r="1" fill="currentColor" />
+    <rect x="6" y="11" width="9" height="2" rx="0.5" fill="currentColor" />
+  </svg>
+`;
+var LABEL_ORDERED_LIST = `
+  <svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <text x="1" y="4" font-size="4" fill="currentColor">1.</text>
+    <rect x="6" y="3" width="9" height="2" rx="0.5" fill="currentColor" />
+    <text x="1" y="8" font-size="4" fill="currentColor">2.</text>
+    <rect x="6" y="7" width="9" height="2" rx="0.5" fill="currentColor" />
+    <text x="1" y="12" font-size="4" fill="currentColor">3.</text>
+    <rect x="6" y="11" width="9" height="2" rx="0.5" fill="currentColor" />
+  </svg>
+`;
 var LABEL_ALIGN_LEFT = `
 	<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 		<rect x="1" y="2" width="10" height="2" rx="0.5" fill="currentColor" />
@@ -420,6 +440,8 @@ export {
   LABEL_UNDO,
   LABEL_REDO,
   LABEL_LINK,
+  LABEL_UNORDERED_LIST,
+  LABEL_ORDERED_LIST,
   LABEL_ALIGN_LEFT,
   LABEL_ALIGN_CENTER,
   LABEL_ALIGN_RIGHT,
@@ -438,4 +460,4 @@ export {
   pushStandaloneSnapshot,
   setMaxStackSize
 };
-//# sourceMappingURL=chunk-ZDGUOGND.mjs.map
+//# sourceMappingURL=chunk-W3ULZ2LR.mjs.map

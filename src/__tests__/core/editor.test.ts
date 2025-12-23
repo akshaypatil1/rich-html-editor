@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { initRichEditor, getCleanHTML } from "../core/editor";
-import { _setDoc, _getDoc, _setUndoStack, _setRedoStack } from "../core/state";
+import { initRichEditor, getCleanHTML } from "../../core/editor";
+import {
+  _setDoc,
+  _getDoc,
+  _setUndoStack,
+  _setRedoStack,
+} from "../../core/state";
 
 describe("Rich Editor Core", () => {
   let mockIframe: HTMLIFrameElement;

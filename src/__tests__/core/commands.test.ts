@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { sanitizeURL } from "../core/commands";
+import { sanitizeURL } from "../../core/commands";
 
 describe("URL Sanitization", () => {
   describe("XSS Prevention", () => {

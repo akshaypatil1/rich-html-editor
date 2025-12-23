@@ -1,275 +1,194 @@
 # rich-html-editor
 
-[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor)
+[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor) [![license](https://img.shields.io/npm/l/rich-html-editor.svg)](LICENSE)
 
-A framework-agnostic, plug-and-play rich HTML editor library for adding WYSIWYG editing capabilities to your web applications.
+> **Edit HTML templates safely — without breaking layout or CSS.**
 
-## Features
+`rich-html-editor` is a **lightweight, framework-agnostic HTML editor** designed for **non-technical users** to edit **existing HTML templates** inside an iframe.  
+It enables **controlled, template-driven editing**, not free-form WYSIWYG chaos.
 
-- 📝 **Rich Text Editing** - Bold, italic, underline, text alignment, font selection
-- 🎨 **Formatting Tools** - Color pickers for text and highlight colors
-- 🔗 **Links & URLs** - Built-in link insertion with XSS protection
-- ↩️ **Undo/Redo** - Full undo/redo support with snapshot management
-- 🛠️ **Sticky Toolbar** - Always-visible formatting toolbar
-- 🔒 **Security** - URL sanitization to prevent XSS attacks
-- 📦 **Small Bundle** - ~13KB minified (ESM format)
+---
 
-Release: **v1.0.0** — Stable release (2025-12-22) including headings, lists (UL/OL), full toolbar formatting, color pickers, link sanitization, and undo/redo.
+## ✨ Why rich-html-editor?
 
-## Changelog
+Most rich text editors allow users to edit _anything_ — which often leads to broken layouts, styles, or invalid HTML.
 
-See the full changelog in [CHANGELOG.md](CHANGELOG.md). Latest release: **v1.0.0** (2025-12-22).
+**rich-html-editor is different:**
 
-## Installation
+- 🧩 Built for **template-driven HTML**
+- 🔒 Runs inside an **iframe** (style & DOM isolation)
+- 🛠️ Focused on **safe, controlled editing**
+- 👩‍💼 Ideal for **non-technical users**
+- ⚙️ Framework-agnostic (React, Angular, Vue, Vanilla JS)
 
-### From npm (once published)
+---
 
-```bash
-npm install rich-html-editor
-```
+## 🚀 Features
 
-### From GitHub
+### ✏️ Text Formatting
 
-```bash
-npm install github:akshaypatil1/rich-html-editor
-```
+- Bold
+- Italic
+- Underline
+- Strikethrough
+- Font family
+- Font size
+- Headings (H1–H6)
+- Ordered & unordered lists
+- Links
 
-## Usage
+### 🎨 Styling
 
-```typescript
-import { initRichEditor, getCleanHTML } from "rich-html-editor";
+- Text color
+- Text highlighter
+- Alignment
 
-// Initialize editor on an iframe
-const iframe = document.querySelector("iframe");
-initRichEditor(iframe);
+### 🧠 Editor Utilities
 
-// Get cleaned HTML content
-const html = getCleanHTML();
-```
+- Undo / Redo
+- Format state tracking
+- History stack (configurable)
+- Clean HTML extraction
 
-## Demo / Examples
+### 🧱 Architecture
 
-Below are quick examples to get the editor running in various environments. These show minimal integrations for a host page or framework.
+- Iframe-based isolation
+- Injectable toolbar
+- Event-driven updates
+- Framework-agnostic core
+- TypeScript-first API
 
-Vanilla JavaScript
+---
 
-```html
-<iframe id="editor" srcdoc="<body><div class=\"editable\">Edit me</div></body>"></iframe>
-<script type="module">
-  import { initRichEditor, getCleanHTML } from './dist/index.mjs';
-  const iframe = document.getElementById('editor');
-  initRichEditor(iframe);
-  // later, retrieve the cleaned HTML from the editor
-  const html = getCleanHTML();
-</script>
-```
-
-React (functional component)
-
-```jsx
-import { useEffect, useRef } from "react";
-import { initRichEditor, getCleanHTML } from "rich-html-editor";
-
-export default function Editor() {
-  const iframeRef = useRef(null);
-  useEffect(() => {
-    if (iframeRef.current) initRichEditor(iframeRef.current);
-    // later, read cleaned HTML from the editor
-    const html = getCleanHTML();
-  }, []);
-  return (
-    <iframe
-      ref={iframeRef}
-      srcDoc={'<body><div class="editable">Edit me</div></body>'}
-    />
-  );
-}
-```
-
-Angular (simple component)
-
-```ts
-// in component template
-// <iframe #editor [srcdoc]="'<body><div class=\"editable\">Edit me</div></body>'"></iframe>
-
-// in component.ts
-import { AfterViewInit, ViewChild, ElementRef } from "@angular/core";
-import { initRichEditor, getCleanHTML } from "rich-html-editor";
-
-export class MyEditorComponent implements AfterViewInit {
-  @ViewChild("editor") editor!: ElementRef<HTMLIFrameElement>;
-  ngAfterViewInit() {
-    initRichEditor(this.editor.nativeElement);
-    // later, obtain cleaned HTML
-    const html = getCleanHTML();
-  }
-}
-```
-
-Vue 3 (Composition API)
-
-```vue
-<template>
-  <iframe ref="editor" :srcdoc="srcdoc"></iframe>
-</template>
-<script setup>
-import { onMounted, ref } from "vue";
-import { initRichEditor, getCleanHTML } from "rich-html-editor";
-
-const editor = ref(null);
-const srcdoc = '<body><div class="editable">Edit me</div></body>';
-onMounted(() => {
-  if (editor.value) initRichEditor(editor.value);
-  // later, read cleaned HTML from the editor
-  const html = getCleanHTML();
-});
-</script>
-```
-
-Notes:
-
-- The toolbar is injected into the iframe document and uses inline styles by default. For theming, replace or override the `#editor-toolbar` element inside the iframe or modify the `injectToolbar` function.
-- Accessibility: toolbar exposes ARIA attributes and keyboard navigation (Arrow keys, Enter/Space). Keyboard shortcuts are available for Bold (Ctrl/Cmd+B), Italic (Ctrl/Cmd+I), Underline (Ctrl/Cmd+U), Undo (Ctrl/Cmd+Z), Redo (Ctrl/Cmd+Y or Ctrl/Cmd+Shift+Z).
-
-## API
-
-### `initRichEditor(iframe: HTMLIFrameElement): void`
-
-Initializes the rich HTML editor on the target iframe element.
-
-**Parameters:**
-
-# rich-html-editor
-
-A framework-agnostic, plug-and-play rich HTML editor library for adding WYSIWYG editing capabilities to web applications (vanilla JS, React, Vue, Angular, etc.).
-
-## Quick Start
-
-Install from npm (when published):
+## 📦 Installation
 
 ```bash
 npm install rich-html-editor
+# or
+yarn add rich-html-editor
 ```
 
-Install directly from GitHub (dist is included in this repo — no build required on install):
+---
 
-```bash
-npm install github:akshaypatil1/rich-html-editor
-```
+## ⚡ Quick Start (Browser / iframe)
 
-Or install a specific release/tag:
+The editor initializes on an `HTMLIFrameElement`.
 
-```bash
-npm install github:akshaypatil1/rich-html-editor#v0.1.0
-```
-
-This repository includes built `dist/` artifacts so consumers installing from Git do not need to run a build step.
-
-## Usage (quick)
-
-```typescript
-import {
-  initRichEditor,
-  getCleanHTML,
-  getSanitizedHTML,
-} from "rich-html-editor";
-
-const iframe = document.querySelector("iframe") as HTMLIFrameElement | null;
-if (iframe) {
-  initRichEditor(iframe);
-  // later...
-  const raw = getCleanHTML(); // full document HTML (raw)
-  const safe = getSanitizedHTML(); // sanitized HTML safe for untrusted contexts
-}
-```
-
-## Examples
-
-Vanilla JavaScript (module import):
+> ⚠️ The iframe must be **same-origin**. Use `srcdoc` for safety.
 
 ```html
-<iframe id="editor" srcdoc="<body><div class=\"editable\">Edit me</div></body>"></iframe>
 <script type="module">
-  import { initRichEditor } from 'rich-html-editor';
-  const iframe = document.getElementById('editor');
-  if (iframe instanceof HTMLIFrameElement) initRichEditor(iframe);
+  import {
+    initRichEditor,
+    getCleanHTML,
+    editorEventEmitter,
+  } from "rich-html-editor";
+
+  const iframe = document.createElement("iframe");
+  iframe.srcdoc =
+    "<!doctype html><html><head></head><body><div>Edit me</div></body></html>";
+
+  document.body.appendChild(iframe);
+
+  initRichEditor(iframe, { maxStackSize: 50 });
+
+  const off = editorEventEmitter.on("contentChanged", (event) => {
+    console.log("Content changed:", event);
+  });
+
+  const html = getCleanHTML();
+  console.log(html);
+
+  // off(); // unsubscribe when needed
 </script>
 ```
 
-React (functional component):
+---
+
+## 📦 Module Usage
+
+### ESM
+
+```js
+import { initRichEditor, getCleanHTML } from "rich-html-editor";
+```
+
+### CommonJS
+
+```js
+const { initRichEditor, getCleanHTML } = require("rich-html-editor");
+```
+
+---
+
+## 🧩 Framework Integrations
+
+### React (Functional Component)
 
 ```jsx
-import { useEffect, useRef } from "react";
-import { initRichEditor } from "rich-html-editor";
+import React, { useRef, useEffect } from "react";
+import { initRichEditor, editorEventEmitter } from "rich-html-editor";
 
-export default function Editor() {
+export default function RichEditor() {
   const iframeRef = useRef(null);
+
   useEffect(() => {
-    if (iframeRef.current) initRichEditor(iframeRef.current);
+    const iframe = iframeRef.current;
+    iframe.srcdoc =
+      "<!doctype html><html><body><div>Edit me</div></body></html>";
+
+    initRichEditor(iframe);
+
+    const off = editorEventEmitter.on("contentChanged", () => {});
+    return () => off();
   }, []);
-  return (
-    <iframe
-      ref={iframeRef}
-      srcDoc={'<body><div class="editable">Edit me</div></body>'}
-    />
-  );
+
+  return <iframe ref={iframeRef} title="Rich HTML Editor" />;
 }
 ```
 
-Vue 3 (Composition API):
+---
 
-```vue
-<template>
-  <iframe ref="editor" :srcdoc="srcdoc"></iframe>
-</template>
-<script setup>
-import { onMounted, ref } from "vue";
-import { initRichEditor } from "rich-html-editor";
+## 🧠 Public API
 
-const editor = ref(null);
-const srcdoc = '<body><div class="editable">Edit me</div></body>';
-onMounted(() => {
-  if (editor.value) initRichEditor(editor.value);
-});
-</script>
-```
+### `initRichEditor(iframe, config?)`
 
-Angular (component):
+Initializes the editor inside the provided iframe.
 
-```ts
-// template: <iframe #editor [srcdoc]="'<body><div class=\"editable\">Edit me</div></body>'"></iframe>
-import { AfterViewInit, ViewChild, ElementRef } from "@angular/core";
-import { initRichEditor } from "rich-html-editor";
+### `getCleanHTML(): string`
 
-export class MyEditorComponent implements AfterViewInit {
-  @ViewChild("editor") editor!: ElementRef<HTMLIFrameElement>;
-  ngAfterViewInit() {
-    initRichEditor(this.editor.nativeElement);
-  }
-}
-```
+Returns sanitized HTML:
 
-## API
+- Toolbar removed
+- Editor-specific attributes stripped
+- Safe for storage or approval workflows
 
-- `initRichEditor(iframe: HTMLIFrameElement, config?)` — Initialize the editor on the provided iframe.
-- `getCleanHTML(): string` — Returns the full document HTML (raw). Use only in trusted contexts or for internal storage.
-- `getSanitizedHTML(): string` — Returns a sanitized HTML string suitable for exporting to untrusted contexts (uses the library sanitizer).
+---
 
-Notes:
+## 🛣️ Roadmap
 
-- The package provides ESM, CJS and TypeScript declaration files (`dist/*.mjs`, `dist/*.js`, `dist/*.d.ts`).
-- This library is framework-agnostic; you can integrate it with any frontend framework — the consumer is responsible for framework-specific lifecycle integration.
+- Image upload (≤ 1MB)
+- Background color / image
+- Table editor
+- Video embedding (≤ 1MB)
+- Clear formatting (editor-only)
+- Superscript / subscript
+- Editable-region locking
 
-## Security
+---
 
-- `getCleanHTML()` returns raw HTML from the editor and may contain unsafe attributes or elements. Sanitize before inserting into other pages.
-- Prefer `getSanitizedHTML()` when exporting user content for untrusted contexts. Server-side sanitization is recommended as a second line of defense.
+## 🤝 Contributing
 
-## Notes for Consumers
+Contributions are welcome!
 
-- Because this repo includes prebuilt `dist/` artifacts, installing from GitHub will not require the consumer to run a build step.
-- If you instead rely on source-only installs and `prepare` scripts, ensure `devDependencies` (build tools) are available on the install environment.
+👉 https://github.com/akshaypatil1/rich-html-editor
 
-## License
+---
+
+## 📄 License
 
 MIT
+
+---
+
+⭐ If this helps you, consider starring the repo

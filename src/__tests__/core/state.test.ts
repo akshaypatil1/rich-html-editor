@@ -10,7 +10,7 @@ import {
   _getCurrentEditable,
   pushStandaloneSnapshot,
   setMaxStackSize,
-} from "../core/state";
+} from "../../core/state";
 
 describe("State Management", () => {
   let mockDoc: Document;

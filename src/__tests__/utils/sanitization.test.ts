@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { _setDoc, pushStandaloneSnapshot, _getUndoStack } from "../core/state";
+import {
+  _setDoc,
+  pushStandaloneSnapshot,
+  _getUndoStack,
+} from "../../core/state";
 
 describe("Sanitization", () => {
   beforeEach(() => {

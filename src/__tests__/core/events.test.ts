@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { EditorEventEmitter } from "../core/events";
-import type { EditorEventType } from "../core/types";
+import { EditorEventEmitter } from "../../core/events";
+import type { EditorEventType } from "../../core/types";
 
 describe("EditorEventEmitter", () => {
   let emitter: EditorEventEmitter;

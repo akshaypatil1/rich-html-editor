@@ -1,6 +1,6 @@
 {
   "name": "rich-html-editor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Framework-agnostic rich HTML editor",
   "author": "akshaypatil1",
   "license": "MIT",
@@ -25,7 +25,8 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "keywords": [
     "rich-editor",

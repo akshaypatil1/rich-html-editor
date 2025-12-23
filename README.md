@@ -9,6 +9,16 @@ It enables **controlled, template-driven editing**, not free-form WYSIWYG chaos.
 
 ---
 
+## 🎥 Demo
+
+Below is a short demo showing how **rich-html-editor** allows inline editing of an HTML template using a toolbar embedded inside an iframe.
+
+![rich-html-editor demo](assets/demo.gif)
+
+> The user edits text, formatting, and styles directly inside the iframe while preserving the original template structure.
+
+---
+
 ## ✨ Why rich-html-editor?
 
 Most rich text editors allow users to edit _anything_ — which often leads to broken layouts, styles, or invalid HTML.

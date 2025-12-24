@@ -91,7 +91,7 @@ var init_events = __esm({
 });
 
 // src/core/constants.ts
-var TOOLBAR_ID, STYLE_ID, CLASS_EDITABLE, CLASS_ACTIVE, DEFAULT_MAX_STACK, TOOLBAR_BG, TOOLBAR_BORDER, BUTTON_BORDER, BUTTON_ACTIVE_BG, BUTTON_BG, BUTTON_COLOR, INFO_COLOR, HOVER_OUTLINE, ACTIVE_OUTLINE, LABEL_BOLD, LABEL_ITALIC, LABEL_UNDERLINE, LABEL_STRIKETHROUGH, LABEL_UNDO, LABEL_REDO, LABEL_LINK, LABEL_UNORDERED_LIST, LABEL_ORDERED_LIST, LABEL_ALIGN_LEFT, LABEL_ALIGN_CENTER, LABEL_ALIGN_RIGHT, FONT_OPTIONS, SIZE_OPTIONS, FORMAT_OPTIONS;
+var TOOLBAR_ID, STYLE_ID, CLASS_EDITABLE, CLASS_ACTIVE, DEFAULT_MAX_STACK, TOOLBAR_BG, TOOLBAR_BORDER, BUTTON_BORDER, BUTTON_ACTIVE_BG, BUTTON_BG, BUTTON_COLOR, INFO_COLOR, HOVER_OUTLINE, ACTIVE_OUTLINE, LABEL_BOLD, LABEL_ITALIC, LABEL_UNDERLINE, LABEL_STRIKETHROUGH, LABEL_UNDO, LABEL_REDO, LABEL_LINK, LABEL_UNORDERED_LIST, LABEL_ORDERED_LIST, LABEL_ALIGN_LEFT, LABEL_ALIGN_CENTER, LABEL_ALIGN_RIGHT, FONT_OPTIONS, SIZE_OPTIONS, FORMAT_OPTIONS, LABEL_CLEAR_FORMAT;
 var init_constants = __esm({
   "src/core/constants.ts"() {
     "use strict";
@@ -223,6 +223,7 @@ var init_constants = __esm({
       { label: "Heading 5", value: "h5" },
       { label: "Heading 6", value: "h6" }
     ];
+    LABEL_CLEAR_FORMAT = "Clear";
   }
 });
 
@@ -341,6 +342,8 @@ __export(state_exports, {
   _getDoc: () => _getDoc,
   _getRedoStack: () => _getRedoStack,
   _getUndoStack: () => _getUndoStack,
+  _restoreSelection: () => _restoreSelection,
+  _saveSelection: () => _saveSelection,
   _setCurrentEditable: () => _setCurrentEditable,
   _setDoc: () => _setDoc,
   _setRedoStack: () => _setRedoStack,
@@ -386,6 +389,29 @@ function _setCurrentEditable(el) {
 }
 function _getCurrentEditable() {
   return _currentEditable;
+}
+function _saveSelection() {
+  try {
+    if (!_doc) return;
+    const sel = _doc.getSelection();
+    if (!sel) return;
+    if (!sel.rangeCount) return;
+    _savedRange = sel.getRangeAt(0).cloneRange();
+  } catch (e) {
+  }
+}
+function _restoreSelection() {
+  try {
+    if (!_doc) return;
+    const sel = _doc.getSelection();
+    if (!sel) return;
+    if (_savedRange) {
+      sel.removeAllRanges();
+      sel.addRange(_savedRange);
+      _savedRange = null;
+    }
+  } catch (e) {
+  }
 }
 function pushStandaloneSnapshot(clearRedo = true) {
   if (!_doc) return;
@@ -474,7 +500,7 @@ function pushStandaloneSnapshot(clearRedo = true) {
 function setMaxStackSize(size) {
   _maxStackSize = Math.max(1, size);
 }
-var _doc, _undoStack, _redoStack, _currentEditable, _maxStackSize;
+var _doc, _undoStack, _redoStack, _currentEditable, _savedRange, _maxStackSize;
 var init_state = __esm({
   "src/core/state.ts"() {
     "use strict";
@@ -485,6 +511,7 @@ var init_state = __esm({
     _undoStack = [];
     _redoStack = [];
     _currentEditable = null;
+    _savedRange = null;
     _maxStackSize = DEFAULT_MAX_STACK;
   }
 });
@@ -946,6 +973,7 @@ function setupOverflow(doc, toolbar, options, format, helpers) {
 }
 
 // src/toolbar/buttons.ts
+init_state();
 function makeButton(doc, options, label, title, command, value, isActive, disabled) {
   const btn = doc.createElement("button");
   btn.type = "button";
@@ -960,7 +988,14 @@ function makeButton(doc, options, label, title, command, value, isActive, disabl
     btn.setAttribute("aria-pressed", String(!!isActive));
   btn.tabIndex = 0;
   if (disabled) btn.disabled = true;
-  btn.onclick = () => options.onCommand(command, value);
+  btn.onclick = () => {
+    _restoreSelection();
+    options.onCommand(command, value);
+  };
+  btn.addEventListener("mousedown", (ev) => {
+    ev.preventDefault();
+    _saveSelection();
+  });
   btn.addEventListener("keydown", (ev) => {
     if (ev.key === "Enter" || ev.key === " ") {
       ev.preventDefault();
@@ -1114,6 +1149,9 @@ function injectToolbar(doc, options) {
     )
   );
   grp3.appendChild(makeButton2(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  grp3.appendChild(
+    makeButton2(LABEL_CLEAR_FORMAT, "Clear formatting", "clearFormat")
+  );
   grp3.appendChild(
     makeButton2(
       LABEL_UNORDERED_LIST,
@@ -1661,6 +1699,7 @@ function applyStandaloneCommand(command, value) {
       const a = doc.createElement("a");
       a.href = sanitizeURL(value || "#");
       a.appendChild(content);
+      a.dataset.rheFormat = "true";
       range.insertNode(a);
     } else if (command === "foreColor")
       wrapSelectionWithElement(doc, "span", { color: value });
@@ -1681,6 +1720,7 @@ function applyStandaloneCommand(command, value) {
         const newEl = doc.createElement(tag);
         newEl.className = block.className || "";
         while (block.firstChild) newEl.appendChild(block.firstChild);
+        newEl.dataset.rheFormat = "true";
         block.parentElement.replaceChild(newEl, block);
       } else {
         wrapSelectionWithElement(doc, tag);
@@ -1688,6 +1728,19 @@ function applyStandaloneCommand(command, value) {
     } else if (command === "unorderedList" || command === "orderedList") {
       const tag = command === "unorderedList" ? "ul" : "ol";
       toggleList(doc, tag);
+    } else if (command === "clearFormat") {
+      console.log("[rich-html-editor] clearFormat command invoked");
+      try {
+        const sel = doc.getSelection();
+        console.log(
+          "[rich-html-editor] selection before clear:",
+          sel ? sel.toString() : null,
+          sel ? sel.rangeCount : 0
+        );
+      } catch (e) {
+        console.log("[rich-html-editor] selection inspect failed", e);
+      }
+      clearSelectionFormatting(doc);
     }
     pushStandaloneSnapshot();
   } catch (error) {
@@ -1703,6 +1756,7 @@ function wrapSelectionWithElement(doc, tagName, style) {
   if (range.collapsed) {
     const el = doc.createElement(tagName);
     if (style) Object.assign(el.style, style);
+    el.dataset.rheFormat = "true";
     const zw = doc.createTextNode("\u200B");
     el.appendChild(zw);
     range.insertNode(el);
@@ -1716,6 +1770,7 @@ function wrapSelectionWithElement(doc, tagName, style) {
   const content = range.extractContents();
   const wrapper = doc.createElement(tagName);
   if (style) Object.assign(wrapper.style, style);
+  wrapper.dataset.rheFormat = "true";
   wrapper.appendChild(content);
   range.insertNode(wrapper);
   sel.removeAllRanges();
@@ -1799,6 +1854,237 @@ function findBlockAncestor(node) {
     n = n.parentNode;
   }
   return null;
+}
+function clearSelectionFormatting(doc) {
+  var _a, _b, _c;
+  console.log("[rich-html-editor] clearSelectionFormatting start");
+  const sel = doc.getSelection();
+  if (!sel || !sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  try {
+    console.log(
+      "[rich-html-editor] range toString:",
+      range.toString(),
+      "startContainer:",
+      range.startContainer.nodeType,
+      "endContainer:",
+      range.endContainer.nodeType
+    );
+  } catch (e) {
+    console.log("[rich-html-editor] range inspection failed", e);
+  }
+  if (range.collapsed) return;
+  try {
+    let getMarkedAncestors2 = function(node) {
+      const out = [];
+      let n = node && node.nodeType === Node.ELEMENT_NODE ? node : node && node.parentElement;
+      while (n) {
+        if (n.nodeType === Node.ELEMENT_NODE) {
+          const el = n;
+          if (el.dataset && el.dataset.rheFormat === "true") out.push(el);
+        }
+        n = n.parentNode;
+      }
+      return out;
+    };
+    var getMarkedAncestors = getMarkedAncestors2;
+    const INLINE_WRAP = ["STRONG", "B", "EM", "I", "U", "S", "SPAN", "A"];
+    const startAnc = getMarkedAncestors2(range.startContainer);
+    const endAnc = getMarkedAncestors2(range.endContainer);
+    console.log(
+      "[rich-html-editor] marked ancestors counts",
+      startAnc.length,
+      endAnc.length
+    );
+    let outer = null;
+    for (let i = startAnc.length - 1; i >= 0; i--) {
+      const a = startAnc[i];
+      if (endAnc.includes(a)) {
+        outer = a;
+        break;
+      }
+    }
+    if (!outer) {
+      if (startAnc.length) outer = startAnc[startAnc.length - 1];
+      else if (endAnc.length) outer = endAnc[endAnc.length - 1];
+    }
+    if (outer && INLINE_WRAP.includes(outer.tagName)) {
+      try {
+        range.setStartBefore(outer);
+        range.setEndAfter(outer);
+        console.log(
+          "[rich-html-editor] expanded range to include marked ancestor:",
+          outer.tagName
+        );
+      } catch (e) {
+      }
+    }
+  } catch (e) {
+    console.log("[rich-html-editor] marked-ancestor expand failed", e);
+  }
+  const content = range.extractContents();
+  console.log(
+    "[rich-html-editor] extracted content child count:",
+    content.childNodes.length
+  );
+  try {
+    const dbgWrap = doc.createElement("div");
+    dbgWrap.appendChild(content.cloneNode(true));
+    console.log("[rich-html-editor] extracted HTML:", dbgWrap.innerHTML);
+  } catch (e) {
+  }
+  try {
+    const container = doc.createElement("div");
+    container.appendChild(content);
+    console.log(
+      "[rich-html-editor] container before aggressive:",
+      container.innerHTML
+    );
+    let seen = 0;
+    while (true) {
+      const el = container.querySelector('[data-rhe-format="true"]');
+      if (!el) break;
+      const tagName = el.tagName;
+      console.log("[rich-html-editor] aggressive-unwrapping:", tagName);
+      if (/^H[1-6]$/.test(tagName)) {
+        const p = doc.createElement("p");
+        while (el.firstChild) p.appendChild(el.firstChild);
+        (_a = el.parentNode) == null ? void 0 : _a.replaceChild(p, el);
+      } else {
+        try {
+          el.style.cssText = "";
+        } catch (e) {
+        }
+        const frag = doc.createDocumentFragment();
+        while (el.firstChild) frag.appendChild(el.firstChild);
+        (_b = el.parentNode) == null ? void 0 : _b.replaceChild(frag, el);
+      }
+      seen++;
+      if (seen > 200) break;
+    }
+    const cleaned = doc.createDocumentFragment();
+    while (container.firstChild) cleaned.appendChild(container.firstChild);
+    console.log(
+      "[rich-html-editor] container after aggressive:",
+      (function() {
+        const d = doc.createElement("div");
+        d.appendChild(cleaned.cloneNode(true));
+        return d.innerHTML;
+      })()
+    );
+    var contentToInsert = cleaned;
+    console.log(
+      "[rich-html-editor] aggressive cleaned nodes:",
+      seen,
+      "children:",
+      contentToInsert.childNodes.length
+    );
+    while (contentToInsert.firstChild)
+      content.appendChild(contentToInsert.firstChild);
+  } catch (e) {
+    console.log("[rich-html-editor] aggressive cleaning failed", e);
+  }
+  function cleanNode(node) {
+    var _a2;
+    try {
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const ne = node;
+        console.log(
+          "[rich-html-editor] cleaning node:",
+          ne.tagName,
+          "marked=",
+          (_a2 = ne.dataset) == null ? void 0 : _a2.rheFormat
+        );
+      }
+    } catch (e) {
+    }
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node;
+      const isMarked = el.dataset && el.dataset.rheFormat === "true";
+      const tag = el.tagName;
+      if (isMarked && (tag === "STRONG" || tag === "B" || tag === "EM" || tag === "I" || tag === "U" || tag === "S")) {
+        const frag = doc.createDocumentFragment();
+        while (el.firstChild) frag.appendChild(el.firstChild);
+        const parent2 = el.parentNode;
+        if (parent2) parent2.replaceChild(frag, el);
+        console.log(
+          "[rich-html-editor] unwrapped element",
+          tag,
+          "-> moved children:",
+          frag.childNodes.length
+        );
+        Array.from(frag.childNodes).forEach((c) => cleanNode(c));
+        return;
+      }
+      if (isMarked && tag === "SPAN") {
+        el.style.cssText = "";
+        const frag = doc.createDocumentFragment();
+        while (el.firstChild) frag.appendChild(el.firstChild);
+        const parent2 = el.parentNode;
+        if (parent2) parent2.replaceChild(frag, el);
+        console.log(
+          "[rich-html-editor] removed span styles and unwrapped children",
+          frag.childNodes.length
+        );
+        Array.from(frag.childNodes).forEach((c) => cleanNode(c));
+        return;
+      }
+      if (isMarked && /^H[1-6]$/.test(tag)) {
+        const p = doc.createElement("p");
+        while (el.firstChild) p.appendChild(el.firstChild);
+        const parent2 = el.parentNode;
+        if (parent2) parent2.replaceChild(p, el);
+        console.log("[rich-html-editor] converted heading to paragraph");
+        Array.from(p.childNodes).forEach((c) => cleanNode(c));
+        return;
+      }
+      if (isMarked) {
+        el.style.cssText = "";
+      }
+      Array.from(el.childNodes).forEach((c) => cleanNode(c));
+    }
+  }
+  Array.from(content.childNodes).forEach((n) => cleanNode(n));
+  const wrapper = doc.createElement("span");
+  wrapper.appendChild(content);
+  range.insertNode(wrapper);
+  sel.removeAllRanges();
+  const newRange = doc.createRange();
+  newRange.selectNodeContents(wrapper);
+  sel.addRange(newRange);
+  const parent = wrapper.parentElement;
+  if (parent) {
+    const frag = doc.createDocumentFragment();
+    while (wrapper.firstChild) frag.appendChild(wrapper.firstChild);
+    parent.replaceChild(frag, wrapper);
+  }
+  const root = parent || doc.body;
+  const leftover = Array.from(
+    root.querySelectorAll('[data-rhe-format="true"]')
+  );
+  leftover.forEach((el) => {
+    var _a2, _b2, _c2;
+    const tag = el.tagName;
+    if (/^H[1-6]$/.test(tag)) {
+      const p = doc.createElement("p");
+      while (el.firstChild) p.appendChild(el.firstChild);
+      (_a2 = el.parentElement) == null ? void 0 : _a2.replaceChild(p, el);
+      return;
+    }
+    if (el.firstChild) {
+      const frag = doc.createDocumentFragment();
+      while (el.firstChild) frag.appendChild(el.firstChild);
+      (_b2 = el.parentElement) == null ? void 0 : _b2.replaceChild(frag, el);
+    } else {
+      (_c2 = el.parentElement) == null ? void 0 : _c2.removeChild(el);
+    }
+  });
+  const possibleBlock = findBlockAncestor(range.startContainer);
+  if (possibleBlock && possibleBlock.dataset.rheFormat === "true" && /^H[1-6]$/.test(possibleBlock.tagName)) {
+    const p = doc.createElement("p");
+    while (possibleBlock.firstChild) p.appendChild(possibleBlock.firstChild);
+    (_c = possibleBlock.parentElement) == null ? void 0 : _c.replaceChild(p, possibleBlock);
+  }
 }
 
 // src/dom/handlers.ts

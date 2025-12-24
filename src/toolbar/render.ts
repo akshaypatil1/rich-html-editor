@@ -22,6 +22,7 @@ import {
   LABEL_ITALIC,
   LABEL_UNDERLINE,
   LABEL_STRIKETHROUGH,
+  LABEL_CLEAR_FORMAT,
   LABEL_UNORDERED_LIST,
   LABEL_ORDERED_LIST,
   LABEL_UNDO,
@@ -183,6 +184,10 @@ export function injectToolbar(
     )
   );
   grp3.appendChild(makeButton(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
+  // Clear formatting button: removes editor-applied inline/block formatting
+  grp3.appendChild(
+    makeButton(LABEL_CLEAR_FORMAT, "Clear formatting", "clearFormat")
+  );
   grp3.appendChild(
     makeButton(
       LABEL_UNORDERED_LIST,

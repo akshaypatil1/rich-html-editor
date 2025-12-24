@@ -181,6 +181,7 @@ var FORMAT_OPTIONS = [
   { label: "Heading 5", value: "h5" },
   { label: "Heading 6", value: "h6" }
 ];
+var LABEL_CLEAR_FORMAT = "Clear";
 
 // src/utils/sanitize.ts
 import createDOMPurify from "dompurify";
@@ -289,6 +290,7 @@ var _doc = null;
 var _undoStack = [];
 var _redoStack = [];
 var _currentEditable = null;
+var _savedRange = null;
 var _maxStackSize = DEFAULT_MAX_STACK;
 function _setDoc(doc) {
   _doc = doc;
@@ -328,6 +330,29 @@ function _setCurrentEditable(el) {
 }
 function _getCurrentEditable() {
   return _currentEditable;
+}
+function _saveSelection() {
+  try {
+    if (!_doc) return;
+    const sel = _doc.getSelection();
+    if (!sel) return;
+    if (!sel.rangeCount) return;
+    _savedRange = sel.getRangeAt(0).cloneRange();
+  } catch (e) {
+  }
+}
+function _restoreSelection() {
+  try {
+    if (!_doc) return;
+    const sel = _doc.getSelection();
+    if (!sel) return;
+    if (_savedRange) {
+      sel.removeAllRanges();
+      sel.addRange(_savedRange);
+      _savedRange = null;
+    }
+  } catch (e) {
+  }
 }
 function pushStandaloneSnapshot(clearRedo = true) {
   if (!_doc) return;
@@ -448,6 +473,7 @@ export {
   FONT_OPTIONS,
   SIZE_OPTIONS,
   FORMAT_OPTIONS,
+  LABEL_CLEAR_FORMAT,
   sanitizeHtml,
   _setDoc,
   _getDoc,
@@ -457,7 +483,9 @@ export {
   _getRedoStack,
   _setCurrentEditable,
   _getCurrentEditable,
+  _saveSelection,
+  _restoreSelection,
   pushStandaloneSnapshot,
   setMaxStackSize
 };
-//# sourceMappingURL=chunk-W3ULZ2LR.mjs.map
+//# sourceMappingURL=chunk-SGSBLD2K.mjs.map

@@ -3,18 +3,22 @@ import {
   _getDoc,
   _getRedoStack,
   _getUndoStack,
+  _restoreSelection,
+  _saveSelection,
   _setCurrentEditable,
   _setDoc,
   _setRedoStack,
   _setUndoStack,
   pushStandaloneSnapshot,
   setMaxStackSize
-} from "./chunk-W3ULZ2LR.mjs";
+} from "./chunk-SGSBLD2K.mjs";
 export {
   _getCurrentEditable,
   _getDoc,
   _getRedoStack,
   _getUndoStack,
+  _restoreSelection,
+  _saveSelection,
   _setCurrentEditable,
   _setDoc,
   _setRedoStack,
@@ -22,4 +26,4 @@ export {
   pushStandaloneSnapshot,
   setMaxStackSize
 };
-//# sourceMappingURL=state-DA3PGFTN.mjs.map
+//# sourceMappingURL=state-GJYGGPMC.mjs.map

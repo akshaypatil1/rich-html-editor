@@ -155,4 +155,57 @@ describe("formatActions", () => {
     // restore
     (window as any).prompt = orig;
   });
+
+  it("clearFormat removes editor-applied inline formatting and converts headings to paragraphs", () => {
+    document.body.innerHTML = "<p id=blk>Clear Me</p>";
+    const p = document.getElementById("blk")!;
+    const text = p.firstChild as Text;
+
+    // select all and apply multiple editor commands which mark elements
+    const sel = document.getSelection()!;
+
+    const range1 = document.createRange();
+    range1.selectNodeContents(text);
+    sel.removeAllRanges();
+    sel.addRange(range1);
+    applyStandaloneCommand("bold");
+
+    // re-select and apply font size and color (creates spans)
+    const range2 = document.createRange();
+    range2.selectNodeContents(p);
+    sel.removeAllRanges();
+    sel.addRange(range2);
+    applyStandaloneCommand("fontSize", "18");
+    applyStandaloneCommand("foreColor", "#ff0000");
+
+    // convert block to heading (will be marked)
+    const range3 = document.createRange();
+    range3.setStart(text, 0);
+    range3.setEnd(text, text.length);
+    sel.removeAllRanges();
+    sel.addRange(range3);
+    applyStandaloneCommand("formatBlock", "h2");
+
+    // ensure heading and formatting nodes exist
+    expect(document.body.querySelector("h2")).not.toBeNull();
+    expect(document.body.querySelector("strong")).not.toBeNull();
+    expect(document.body.querySelector("span")).not.toBeNull();
+
+    // select heading contents and clear formatting
+    const h = document.body.querySelector("h2")!;
+    const r = document.createRange();
+    r.selectNodeContents(h);
+    sel.removeAllRanges();
+    sel.addRange(r);
+
+    applyStandaloneCommand("clearFormat");
+
+    // after clearing, no strong/span/heading should remain; content should be a paragraph
+    expect(document.body.querySelector("strong")).toBeNull();
+    expect(document.body.querySelector("span")).toBeNull();
+    expect(document.body.querySelector("h2")).toBeNull();
+    const newP = document.body.querySelector("p");
+    expect(newP).not.toBeNull();
+    expect(newP!.textContent).toBe("Clear Me");
+  });
 });

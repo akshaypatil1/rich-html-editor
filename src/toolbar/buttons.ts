@@ -1,3 +1,5 @@
+import { _saveSelection, _restoreSelection } from "../core/state";
+
 export function makeButton(
   doc: Document,
   options: { onCommand: (command: string, value?: string) => void },
@@ -21,7 +23,16 @@ export function makeButton(
     btn.setAttribute("aria-pressed", String(!!isActive));
   btn.tabIndex = 0;
   if (disabled) btn.disabled = true;
-  btn.onclick = () => options.onCommand(command, value);
+  btn.onclick = () => {
+    // restore any previously-saved selection before executing command
+    _restoreSelection();
+    options.onCommand(command, value);
+  };
+  // Prevent toolbar button from taking focus / collapsing selection in the editor
+  btn.addEventListener("mousedown", (ev: MouseEvent) => {
+    ev.preventDefault();
+    _saveSelection();
+  });
   btn.addEventListener("keydown", (ev: KeyboardEvent) => {
     if (ev.key === "Enter" || ev.key === " ") {
       ev.preventDefault();

@@ -12,6 +12,7 @@ let _doc: Document | null = null;
 let _undoStack: string[] = [];
 let _redoStack: string[] = [];
 let _currentEditable: HTMLElement | null = null;
+let _savedRange: Range | null = null;
 let _maxStackSize = DEFAULT_MAX_STACK;
 
 export function _setDoc(doc: Document | null) {
@@ -52,6 +53,34 @@ export function _setCurrentEditable(el: HTMLElement | null) {
 }
 export function _getCurrentEditable() {
   return _currentEditable;
+}
+
+// Selection save/restore helpers used by toolbar interactions
+export function _saveSelection() {
+  try {
+    if (!_doc) return;
+    const sel = _doc.getSelection();
+    if (!sel) return;
+    if (!sel.rangeCount) return;
+    _savedRange = sel.getRangeAt(0).cloneRange();
+  } catch (e) {
+    /* ignore */
+  }
+}
+
+export function _restoreSelection() {
+  try {
+    if (!_doc) return;
+    const sel = _doc.getSelection();
+    if (!sel) return;
+    if (_savedRange) {
+      sel.removeAllRanges();
+      sel.addRange(_savedRange);
+      _savedRange = null;
+    }
+  } catch (e) {
+    /* ignore */
+  }
 }
 export function pushStandaloneSnapshot(clearRedo = true) {
   if (!_doc) return;

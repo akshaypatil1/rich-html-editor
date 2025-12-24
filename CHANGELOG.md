@@ -16,7 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Planned: Table editor
 - Planned: Video embedding (≤ 1MB)
 - Planned: Superscript and subscript formatting
-- Planned: Clear formatting (editor-applied styles only)
+
+---
+
+## [1.1.0] - 2025-12-24
+
+### Added
+
+- Clear formatting (editor-applied styles only) — session-only toolbar action (🧹). Removes formatting applied by the editor during the current editing session; includes marking editor-created nodes, robust selection save/restore for toolbar interactions, and automated tests.
+
+### Changed
+
+- Toolbar: label updated to use broom emoji for Clear formatting control.
+- Tests: added unit tests covering `formatActions` branches and clear-format behavior.
 
 ---
 

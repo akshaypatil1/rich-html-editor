@@ -165,3 +165,6 @@ export const HIGHLIGHT_ICON_HTML = `
     <span class="text-A">A</span>
   </span>
 `;
+
+// Clear formatting label
+export const LABEL_CLEAR_FORMAT = "🧹 Clear";

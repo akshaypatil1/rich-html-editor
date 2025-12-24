@@ -46,6 +46,7 @@ Most rich text editors allow users to edit _anything_ — which often leads to b
 - Headings (H1–H6)
 - Ordered & unordered lists
 - Links
+- Clear formatting (🧹) — removes editor-applied styles within the current session
 
 ### 🎨 Styling
 
@@ -155,6 +156,76 @@ export default function RichEditor() {
 
   return <iframe ref={iframeRef} title="Rich HTML Editor" />;
 }
+```
+
+---
+
+### Angular (Component)
+
+```ts
+import {
+  Component,
+  ElementRef,
+  AfterViewInit,
+  OnDestroy,
+  ViewChild,
+} from "@angular/core";
+import { initRichEditor, editorEventEmitter } from "rich-html-editor";
+
+@Component({
+  selector: "app-rich-editor",
+  template: `<iframe #editorIframe title="Rich HTML Editor"></iframe>`,
+})
+export class RichEditorComponent implements AfterViewInit, OnDestroy {
+  @ViewChild("editorIframe", { static: true })
+  iframeRef!: ElementRef<HTMLIFrameElement>;
+  private off?: () => void;
+
+  ngAfterViewInit() {
+    const iframe = this.iframeRef.nativeElement;
+    iframe.srcdoc =
+      "<!doctype html><html><body><div>Edit me</div></body></html>";
+    initRichEditor(iframe);
+    this.off = editorEventEmitter.on("contentChanged", () => {
+      /* react to changes */
+    });
+  }
+
+  ngOnDestroy() {
+    this.off?.();
+  }
+}
+```
+
+---
+
+### Vue (Single File Component)
+
+```vue
+<template>
+  <iframe ref="editorIframe" title="Rich HTML Editor"></iframe>
+</template>
+
+<script setup>
+import { onMounted, onBeforeUnmount, ref } from "vue";
+import { initRichEditor, editorEventEmitter } from "rich-html-editor";
+
+const editorIframe = ref(null);
+let off;
+
+onMounted(() => {
+  const iframe = editorIframe.value;
+  iframe.srcdoc = "<!doctype html><html><body><div>Edit me</div></body></html>";
+  initRichEditor(iframe);
+  off = editorEventEmitter.on("contentChanged", () => {
+    /* handle */
+  });
+});
+
+onBeforeUnmount(() => {
+  off?.();
+});
+</script>
 ```
 
 ---

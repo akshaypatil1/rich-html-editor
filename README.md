@@ -9,7 +9,23 @@ It enables **controlled, template-driven editing**, not free-form WYSIWYG chaos.
 
 ---
 
-## 🎥 Demo
+## 🎥 Demo & Playground
+
+### ▶️ Live Playground (Try it yourself)
+
+👉 **https://akshaypatil1.github.io/rich-html-editor/**
+
+Use the playground to:
+
+- Edit real HTML inside an iframe
+- Apply formatting safely
+- Export clean HTML instantly
+
+> No install. No build. Runs directly in the browser.
+
+---
+
+### 📽️ Video Demo
 
 Below is a short demo showing how **rich-html-editor** allows inline editing of an HTML template using a toolbar embedded inside an iframe.
 

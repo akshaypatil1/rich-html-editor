@@ -181,7 +181,8 @@ var FORMAT_OPTIONS = [
   { label: "Heading 5", value: "h5" },
   { label: "Heading 6", value: "h6" }
 ];
-var LABEL_CLEAR_FORMAT = "Clear";
+var LABEL_CLEAR_FORMAT = "\u{1F9F9} Clear";
+var MAX_FILE_SIZE = 1024 * 1024;
 
 // src/utils/sanitize.ts
 import createDOMPurify from "dompurify";
@@ -474,6 +475,7 @@ export {
   SIZE_OPTIONS,
   FORMAT_OPTIONS,
   LABEL_CLEAR_FORMAT,
+  MAX_FILE_SIZE,
   sanitizeHtml,
   _setDoc,
   _getDoc,
@@ -488,4 +490,4 @@ export {
   pushStandaloneSnapshot,
   setMaxStackSize
 };
-//# sourceMappingURL=chunk-SGSBLD2K.mjs.map
+//# sourceMappingURL=chunk-GJUQLM52.mjs.map

@@ -11,11 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Planned: Image support (≤ 1MB)
 - Planned: Background color and background image support
 - Planned: Table editor
 - Planned: Video embedding (≤ 1MB)
 - Planned: Superscript and subscript formatting
+
+---
+
+## [1.2.0] - 2025-12-29
+
+### Added
+
+- Click-to-edit image update: clicking an `<img>` inside the editor opens an inline modal allowing users to either upload a local image (image/\*, ≤ 1 MB) which is embedded as a base64 data URL, or provide a remote `http(s)` image URL to apply.
+- Undo/Redo integration for image changes: image `src` updates now push a snapshot so changes are captured in the editor history.
+- Unit tests for image editor flows (file upload, URL apply, CORS fallback).
+
+### Changed
+
+- Moved `MAX_FILE_SIZE` constant into `core/constants.ts` and reused across modules.
+- Styling: images inside editable regions now show a pointer cursor to indicate editable/interactive behavior.
+
+### Removed
+
+- Removed a few unused icon HTML constants from `core/constants.ts` during cleanup.
 
 ---
 

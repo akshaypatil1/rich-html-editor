@@ -142,29 +142,8 @@ export const FORMAT_OPTIONS: { label: string; value: string }[] = [
   { label: "Heading 6", value: "h6" },
 ];
 
-// Shared SVG used by toolbar color inputs (palette icon)
-export const PALETTE_SVG = `
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <path d="M12 2C7 2 3 6 3 11c0 2.8 1.4 5.3 3.7 6.8.9.6 2 .9 3.3.9 1.6 0 3.1-.5 4.3-1.4.6-.4.9-1.1.6-1.8-.3-.7-1-1-1.7-.8-1.1.3-2.3.2-3.4-.3C10.3 14.6 9 13.6 9 12c0-1.7 1.3-3 3-3 .8 0 1.5.3 2.1.8.5.4 1.2.3 1.6-.2.9-1.1 1.4-2.4 1.4-3.8C20.9 6 16.9 2 12 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="7.5" cy="10.5" r="1" fill="currentColor"/>
-    <circle cx="11.5" cy="8.5" r="1" fill="currentColor"/>
-    <circle cx="14.5" cy="11.5" r="1" fill="currentColor"/>
-  </svg>
-`;
-
-// MS Word-like icons for color controls
-export const TEXT_COLOR_ICON_HTML = `
-  <span class="text-color-wrapper" aria-hidden="true">
-    <span class="text-A">A</span>
-  </span>
-`;
-
-export const HIGHLIGHT_ICON_HTML = `
-  <span class="highlight-wrapper" aria-hidden="true">
-    <span class="highlight-bar" data-role="highlight"></span>
-    <span class="text-A">A</span>
-  </span>
-`;
-
 // Clear formatting label
 export const LABEL_CLEAR_FORMAT = "🧹 Clear";
+
+// Maximum allowed file size for inline image uploads (bytes)
+export const MAX_FILE_SIZE = 1024 * 1024; // 1MB

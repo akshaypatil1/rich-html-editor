@@ -54,6 +54,10 @@ Most rich text editors allow users to edit _anything_ — which often leads to b
 - Text highlighter
 - Alignment
 
+### 🖼️ Image Editing
+
+- Click-to-edit images: click an image inside the editor to open a modal that lets the user upload a local image (image/\*, ≤ 1 MB) which will be embedded as a base64 data URL, or provide an `http(s)` image URL to apply. Image changes are recorded in the editor undo/redo history.
+
 ### 🧠 Editor Utilities
 
 - Undo / Redo
@@ -248,11 +252,9 @@ Returns sanitized HTML:
 
 ## 🛣️ Roadmap
 
-- Image upload (≤ 1MB)
 - Background color / image
 - Table editor
 - Video embedding (≤ 1MB)
-- Clear formatting (editor-only)
 - Superscript / subscript
 - Editable-region locking
 

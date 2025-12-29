@@ -6,6 +6,7 @@ import {
   _getRedoStack,
 } from "../core/state";
 import { isEditableCandidate } from "./candidates";
+import { openImageEditor } from "./imageEditor";
 import { injectToolbar } from "../toolbar/toolbar";
 import { computeFormatState, getElementLabel } from "./format";
 import { handleToolbarCommand, handleUndo, handleRedo } from "../core/commands";
@@ -72,6 +73,17 @@ export function attachStandaloneHandlers(doc: Document) {
     "click",
     (e) => {
       const target = e.target as HTMLElement;
+      // If an image was clicked, open the image editor modal
+      if (target && target.tagName === "IMG") {
+        try {
+          openImageEditor(doc, target as HTMLImageElement);
+        } catch (err) {
+          /* ignore */
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       if (!isEditableCandidate(target)) return;
       if (_getCurrentEditable() && _getCurrentEditable() !== target) {
         _getCurrentEditable()?.removeAttribute("contenteditable");

@@ -31,6 +31,9 @@ export function injectStyles(doc: Document): void {
   const css = `
 .${CLASS_EDITABLE}{outline:2px dashed ${HOVER_OUTLINE};cursor:text}
 .${CLASS_ACTIVE}{outline:2px solid ${ACTIVE_OUTLINE};cursor:text}
+#${TOOLBAR_ID} img{cursor:auto}
+/* Make images inside editable regions show a pointer to indicate click/edit */
+.${CLASS_EDITABLE} img, .${CLASS_ACTIVE} img { cursor: pointer; }
 #${TOOLBAR_ID}{
   position: sticky;
   top: 0;
@@ -293,6 +296,36 @@ export function injectStyles(doc: Document): void {
     display: none;
   }
 }
+/* Image editor modal */
+.rhe-img-modal-overlay{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,0.48);
+  z-index: 11000;
+}
+.rhe-img-modal{
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  width: 360px;
+  max-width: calc(100% - 24px);
+  box-shadow: 0 24px 60px rgba(2,6,23,0.28);
+  font-family: inherit;
+}
+.rhe-img-modal h3{ margin: 0 0 8px 0; font-size: 16px }
+.rhe-img-tabs{ display: flex; gap: 8px; margin-bottom: 12px }
+.rhe-img-tabs button{ padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(15,23,42,0.06); background: #fff }
+.rhe-img-tabs button.active{ background: #f3f4ff }
+.rhe-img-pane{ margin-bottom: 12px }
+.rhe-img-pane input[type="file"], .rhe-img-pane input[type="url"]{ width: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(15,23,42,0.06) }
+.rhe-img-msg{ color: #b91c1c; font-size: 13px; min-height: 18px; margin-top: 8px }
+.rhe-img-actions{ display:flex; gap:8px; justify-content:flex-end }
+.rhe-img-actions button{ padding: 8px 12px; border-radius: 8px }
+.rhe-img-actions button.primary{ background: #6366f1; color: #fff; border: none }
+
 `;
   if (!styleEl) {
     styleEl = doc.createElement("style");

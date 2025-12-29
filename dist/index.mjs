@@ -23,6 +23,7 @@ import {
   LABEL_UNDERLINE,
   LABEL_UNDO,
   LABEL_UNORDERED_LIST,
+  MAX_FILE_SIZE,
   SIZE_OPTIONS,
   STYLE_ID,
   TOOLBAR_BG,
@@ -42,7 +43,7 @@ import {
   getEditorEventEmitter,
   pushStandaloneSnapshot,
   sanitizeHtml
-} from "./chunk-SGSBLD2K.mjs";
+} from "./chunk-GJUQLM52.mjs";
 
 // src/dom/styles.ts
 function injectStyles(doc) {
@@ -51,6 +52,9 @@ function injectStyles(doc) {
   const css = `
 .${CLASS_EDITABLE}{outline:2px dashed ${HOVER_OUTLINE};cursor:text}
 .${CLASS_ACTIVE}{outline:2px solid ${ACTIVE_OUTLINE};cursor:text}
+#${TOOLBAR_ID} img{cursor:auto}
+/* Make images inside editable regions show a pointer to indicate click/edit */
+.${CLASS_EDITABLE} img, .${CLASS_ACTIVE} img { cursor: pointer; }
 #${TOOLBAR_ID}{
   position: sticky;
   top: 0;
@@ -313,6 +317,36 @@ function injectStyles(doc) {
     display: none;
   }
 }
+/* Image editor modal */
+.rhe-img-modal-overlay{
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,0.48);
+  z-index: 11000;
+}
+.rhe-img-modal{
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  width: 360px;
+  max-width: calc(100% - 24px);
+  box-shadow: 0 24px 60px rgba(2,6,23,0.28);
+  font-family: inherit;
+}
+.rhe-img-modal h3{ margin: 0 0 8px 0; font-size: 16px }
+.rhe-img-tabs{ display: flex; gap: 8px; margin-bottom: 12px }
+.rhe-img-tabs button{ padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(15,23,42,0.06); background: #fff }
+.rhe-img-tabs button.active{ background: #f3f4ff }
+.rhe-img-pane{ margin-bottom: 12px }
+.rhe-img-pane input[type="file"], .rhe-img-pane input[type="url"]{ width: 100%; padding: 8px; border-radius: 8px; border: 1px solid rgba(15,23,42,0.06) }
+.rhe-img-msg{ color: #b91c1c; font-size: 13px; min-height: 18px; margin-top: 8px }
+.rhe-img-actions{ display:flex; gap:8px; justify-content:flex-end }
+.rhe-img-actions button{ padding: 8px 12px; border-radius: 8px }
+.rhe-img-actions button.primary{ background: #6366f1; color: #fff; border: none }
+
 `;
   if (!styleEl) {
     styleEl = doc.createElement("style");
@@ -745,6 +779,180 @@ function isEditableCandidate(el) {
   if (DISALLOWED.includes(tag)) return false;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return false;
   return true;
+}
+
+// src/dom/imageEditor.ts
+function createModal(doc) {
+  const overlay = doc.createElement("div");
+  overlay.className = "rhe-img-modal-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  const modal = doc.createElement("div");
+  modal.className = "rhe-img-modal";
+  const title = doc.createElement("h3");
+  title.textContent = "Edit image";
+  const tabs = doc.createElement("div");
+  tabs.className = "rhe-img-tabs";
+  const uploadBtn = doc.createElement("button");
+  uploadBtn.type = "button";
+  uploadBtn.textContent = "Upload file";
+  uploadBtn.className = "active";
+  const urlBtn = doc.createElement("button");
+  urlBtn.type = "button";
+  urlBtn.textContent = "Image URL";
+  tabs.appendChild(uploadBtn);
+  tabs.appendChild(urlBtn);
+  const uploadPane = doc.createElement("div");
+  uploadPane.className = "rhe-img-pane rhe-img-pane-upload";
+  const fileInput = doc.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = "image/*";
+  uploadPane.appendChild(fileInput);
+  const uploadMsg = doc.createElement("div");
+  uploadMsg.className = "rhe-img-msg";
+  uploadPane.appendChild(uploadMsg);
+  const urlPane = doc.createElement("div");
+  urlPane.className = "rhe-img-pane rhe-img-pane-url";
+  urlPane.style.display = "none";
+  const urlInput = doc.createElement("input");
+  urlInput.type = "url";
+  urlInput.placeholder = "https://example.com/image.jpg";
+  urlPane.appendChild(urlInput);
+  const urlMsg = doc.createElement("div");
+  urlMsg.className = "rhe-img-msg";
+  urlPane.appendChild(urlMsg);
+  const actions = doc.createElement("div");
+  actions.className = "rhe-img-actions";
+  const cancel = doc.createElement("button");
+  cancel.type = "button";
+  cancel.textContent = "Cancel";
+  const apply = doc.createElement("button");
+  apply.type = "button";
+  apply.textContent = "Apply";
+  apply.className = "primary";
+  actions.appendChild(cancel);
+  actions.appendChild(apply);
+  modal.appendChild(title);
+  modal.appendChild(tabs);
+  modal.appendChild(uploadPane);
+  modal.appendChild(urlPane);
+  modal.appendChild(actions);
+  overlay.appendChild(modal);
+  uploadBtn.addEventListener("click", () => {
+    uploadBtn.classList.add("active");
+    urlBtn.classList.remove("active");
+    uploadPane.style.display = "block";
+    urlPane.style.display = "none";
+  });
+  urlBtn.addEventListener("click", () => {
+    urlBtn.classList.add("active");
+    uploadBtn.classList.remove("active");
+    uploadPane.style.display = "none";
+    urlPane.style.display = "block";
+  });
+  return {
+    overlay,
+    fileInput,
+    uploadMsg,
+    urlInput,
+    urlMsg,
+    cancel,
+    apply
+  };
+}
+function validateUrl(u) {
+  try {
+    const url = new URL(u);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+function openImageEditor(doc, img) {
+  const existing = doc.querySelector(".rhe-img-modal-overlay");
+  if (existing) return;
+  const { overlay, fileInput, uploadMsg, urlInput, urlMsg, cancel, apply } = createModal(doc);
+  function close() {
+    overlay.remove();
+  }
+  fileInput.addEventListener("change", () => {
+    uploadMsg.textContent = "";
+    const f = fileInput.files && fileInput.files[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) {
+      uploadMsg.textContent = "Invalid file type";
+      return;
+    }
+    if (f.size > MAX_FILE_SIZE) {
+      uploadMsg.textContent = "File is larger than 1 MB";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => {
+      uploadMsg.textContent = "Failed to read file";
+    };
+    reader.onload = () => {
+      const result = reader.result;
+      if (!result) {
+        uploadMsg.textContent = "Failed to read file";
+        return;
+      }
+      img.src = result;
+      try {
+        pushStandaloneSnapshot();
+      } catch (err) {
+      }
+      close();
+    };
+    reader.readAsDataURL(f);
+  });
+  apply.addEventListener("click", async () => {
+    urlMsg.textContent = "";
+    const val = urlInput.value.trim();
+    if (val) {
+      if (!validateUrl(val)) {
+        urlMsg.textContent = "Enter a valid http/https URL";
+        return;
+      }
+      try {
+        const head = await fetch(val, { method: "HEAD" });
+        const ct = head.headers.get("content-type");
+        const cl = head.headers.get("content-length");
+        if (ct && !ct.startsWith("image/")) {
+          urlMsg.textContent = "URL does not point to an image";
+          return;
+        }
+        if (cl && Number(cl) > MAX_FILE_SIZE) {
+          urlMsg.textContent = "Image appears larger than 1 MB";
+          return;
+        }
+        img.src = val;
+        try {
+          pushStandaloneSnapshot();
+        } catch (err) {
+        }
+        close();
+        return;
+      } catch (err) {
+        img.src = val;
+        try {
+          pushStandaloneSnapshot();
+        } catch (err2) {
+        }
+        close();
+        return;
+      }
+    } else {
+      close();
+    }
+  });
+  cancel.addEventListener("click", () => close());
+  overlay.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") close();
+  });
+  doc.body.appendChild(overlay);
+  fileInput.focus();
 }
 
 // src/dom/format.ts
@@ -1233,17 +1441,6 @@ function applyStandaloneCommand(command, value) {
       const tag = command === "unorderedList" ? "ul" : "ol";
       toggleList(doc, tag);
     } else if (command === "clearFormat") {
-      console.log("[rich-html-editor] clearFormat command invoked");
-      try {
-        const sel = doc.getSelection();
-        console.log(
-          "[rich-html-editor] selection before clear:",
-          sel ? sel.toString() : null,
-          sel ? sel.rangeCount : 0
-        );
-      } catch (e) {
-        console.log("[rich-html-editor] selection inspect failed", e);
-      }
       clearSelectionFormatting(doc);
     }
     pushStandaloneSnapshot();
@@ -1361,22 +1558,9 @@ function findBlockAncestor(node) {
 }
 function clearSelectionFormatting(doc) {
   var _a, _b, _c;
-  console.log("[rich-html-editor] clearSelectionFormatting start");
   const sel = doc.getSelection();
   if (!sel || !sel.rangeCount) return;
   const range = sel.getRangeAt(0);
-  try {
-    console.log(
-      "[rich-html-editor] range toString:",
-      range.toString(),
-      "startContainer:",
-      range.startContainer.nodeType,
-      "endContainer:",
-      range.endContainer.nodeType
-    );
-  } catch (e) {
-    console.log("[rich-html-editor] range inspection failed", e);
-  }
   if (range.collapsed) return;
   try {
     let getMarkedAncestors2 = function(node) {
@@ -1395,11 +1579,6 @@ function clearSelectionFormatting(doc) {
     const INLINE_WRAP = ["STRONG", "B", "EM", "I", "U", "S", "SPAN", "A"];
     const startAnc = getMarkedAncestors2(range.startContainer);
     const endAnc = getMarkedAncestors2(range.endContainer);
-    console.log(
-      "[rich-html-editor] marked ancestors counts",
-      startAnc.length,
-      endAnc.length
-    );
     let outer = null;
     for (let i = startAnc.length - 1; i >= 0; i--) {
       const a = startAnc[i];
@@ -1416,40 +1595,20 @@ function clearSelectionFormatting(doc) {
       try {
         range.setStartBefore(outer);
         range.setEndAfter(outer);
-        console.log(
-          "[rich-html-editor] expanded range to include marked ancestor:",
-          outer.tagName
-        );
       } catch (e) {
       }
     }
   } catch (e) {
-    console.log("[rich-html-editor] marked-ancestor expand failed", e);
   }
   const content = range.extractContents();
-  console.log(
-    "[rich-html-editor] extracted content child count:",
-    content.childNodes.length
-  );
-  try {
-    const dbgWrap = doc.createElement("div");
-    dbgWrap.appendChild(content.cloneNode(true));
-    console.log("[rich-html-editor] extracted HTML:", dbgWrap.innerHTML);
-  } catch (e) {
-  }
   try {
     const container = doc.createElement("div");
     container.appendChild(content);
-    console.log(
-      "[rich-html-editor] container before aggressive:",
-      container.innerHTML
-    );
     let seen = 0;
     while (true) {
       const el = container.querySelector('[data-rhe-format="true"]');
       if (!el) break;
       const tagName = el.tagName;
-      console.log("[rich-html-editor] aggressive-unwrapping:", tagName);
       if (/^H[1-6]$/.test(tagName)) {
         const p = doc.createElement("p");
         while (el.firstChild) p.appendChild(el.firstChild);
@@ -1468,40 +1627,12 @@ function clearSelectionFormatting(doc) {
     }
     const cleaned = doc.createDocumentFragment();
     while (container.firstChild) cleaned.appendChild(container.firstChild);
-    console.log(
-      "[rich-html-editor] container after aggressive:",
-      (function() {
-        const d = doc.createElement("div");
-        d.appendChild(cleaned.cloneNode(true));
-        return d.innerHTML;
-      })()
-    );
     var contentToInsert = cleaned;
-    console.log(
-      "[rich-html-editor] aggressive cleaned nodes:",
-      seen,
-      "children:",
-      contentToInsert.childNodes.length
-    );
     while (contentToInsert.firstChild)
       content.appendChild(contentToInsert.firstChild);
   } catch (e) {
-    console.log("[rich-html-editor] aggressive cleaning failed", e);
   }
   function cleanNode(node) {
-    var _a2;
-    try {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const ne = node;
-        console.log(
-          "[rich-html-editor] cleaning node:",
-          ne.tagName,
-          "marked=",
-          (_a2 = ne.dataset) == null ? void 0 : _a2.rheFormat
-        );
-      }
-    } catch (e) {
-    }
     if (node.nodeType === Node.ELEMENT_NODE) {
       const el = node;
       const isMarked = el.dataset && el.dataset.rheFormat === "true";
@@ -1511,12 +1642,6 @@ function clearSelectionFormatting(doc) {
         while (el.firstChild) frag.appendChild(el.firstChild);
         const parent2 = el.parentNode;
         if (parent2) parent2.replaceChild(frag, el);
-        console.log(
-          "[rich-html-editor] unwrapped element",
-          tag,
-          "-> moved children:",
-          frag.childNodes.length
-        );
         Array.from(frag.childNodes).forEach((c) => cleanNode(c));
         return;
       }
@@ -1526,10 +1651,6 @@ function clearSelectionFormatting(doc) {
         while (el.firstChild) frag.appendChild(el.firstChild);
         const parent2 = el.parentNode;
         if (parent2) parent2.replaceChild(frag, el);
-        console.log(
-          "[rich-html-editor] removed span styles and unwrapped children",
-          frag.childNodes.length
-        );
         Array.from(frag.childNodes).forEach((c) => cleanNode(c));
         return;
       }
@@ -1538,7 +1659,6 @@ function clearSelectionFormatting(doc) {
         while (el.firstChild) p.appendChild(el.firstChild);
         const parent2 = el.parentNode;
         if (parent2) parent2.replaceChild(p, el);
-        console.log("[rich-html-editor] converted heading to paragraph");
         Array.from(p.childNodes).forEach((c) => cleanNode(c));
         return;
       }
@@ -1636,6 +1756,15 @@ function attachStandaloneHandlers(doc) {
     (e) => {
       var _a, _b;
       const target = e.target;
+      if (target && target.tagName === "IMG") {
+        try {
+          openImageEditor(doc, target);
+        } catch (err) {
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       if (!isEditableCandidate(target)) return;
       if (_getCurrentEditable() && _getCurrentEditable() !== target) {
         (_a = _getCurrentEditable()) == null ? void 0 : _a.removeAttribute("contenteditable");
@@ -1752,7 +1881,7 @@ function initRichEditor(iframe, config) {
     _setRedoStack([]);
     _setCurrentEditable(null);
     if (config == null ? void 0 : config.maxStackSize) {
-      import("./state-GJYGGPMC.mjs").then((m) => m.setMaxStackSize(config.maxStackSize)).catch(() => {
+      import("./state-XHVVMFUB.mjs").then((m) => m.setMaxStackSize(config.maxStackSize)).catch(() => {
       });
     }
     attachStandaloneHandlers(doc);

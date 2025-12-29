@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>rich-html-editor Documentation</title>
+
+    <meta
+      name="description"
+      content="Official documentation for rich-html-editor — a framework-agnostic, iframe-based HTML editor for safe template editing."
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+<rect width='100' height='100' rx='20' fill='%23020217'/>
+<text x='50%' y='60%' text-anchor='middle'
+font-size='48' fill='%2338bdf8'
+font-family='Arial, Helvetica'>AP</text>
+</svg>"
+    />
+    <!-- Shared styles -->
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+
+  <body>
+    <!-- ================= Header ================= -->
+    <header class="site-header">
+      <div class="site-header-inner">
+        <div>
+          <div class="site-title">rich-html-editor</div>
+          <div class="site-subtitle">Safe, template-driven HTML editing</div>
+        </div>
+        <div class="doc-search">
+          <input
+            id="doc-search"
+            type="search"
+            placeholder="Search documentation…"
+            autocomplete="off"
+          />
+          <div id="search-results" class="search-results hidden"></div>
+        </div>
+        <nav class="top-nav">
+          <a href="../index.html">Playground</a>
+          <a href="./index.html">Documentation</a>
+          <a
+            href="https://github.com/akshaypatil1/rich-html-editor"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <!-- ================= Main Layout ================= -->
+    <main class="layout">
+      <!-- ========== Sidebar ========== -->
+      <aside class="sidebar">
+        <h4>Introduction</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting Started</a>
+        <a href="./concepts.html">Core Concepts</a>
+
+        <h4>Usage</h4>
+        <a href="./browser-usage.html">Browser Usage</a>
+        <a href="./framework-guides.html">Framework Guides</a>
+
+        <h4>Reference</h4>
+        <a href="./api.html">API Reference</a>
+        <a href="./changelog.html">Changelog</a>
+
+        <h4>Advanced</h4>
+        <a href="./security.html">Security & Safety</a>
+        <a href="./faq.html">FAQ</a>
+        <a href="./roadmap.html">Roadmap</a>
+      </aside>
+
+      <!-- ========== Content ========== -->
+      <section class="content">
+        <h1>Documentation</h1>
+
+        <p>
+          <strong>rich-html-editor</strong> is a framework-agnostic HTML editor
+          built for one specific goal:
+        </p>
+
+        <div class="callout">
+          Allow <strong>non-technical users</strong> to edit
+          <strong>existing HTML templates</strong> safely — without breaking
+          layout, CSS, or structure.
+        </div>
+
+        <h2>What problem does it solve?</h2>
+
+        <p>
+          Most WYSIWYG editors treat content as free-form text. This works for
+          blogs — but fails for:
+        </p>
+
+        <ul>
+          <li>Email templates</li>
+          <li>Marketing HTML</li>
+          <li>CMS-managed layouts</li>
+          <li>Approval-based workflows</li>
+          <li>Enterprise internal tools</li>
+        </ul>
+
+        <p>
+          Users can accidentally delete tags, change layout, or inject invalid
+          HTML.
+        </p>
+
+        <p>
+          <strong>rich-html-editor takes a different approach.</strong>
+        </p>
+
+        <h2>How rich-html-editor is different</h2>
+
+        <ul>
+          <li>
+            <strong>Template-first</strong> — works on existing HTML, not blank
+            pages
+          </li>
+          <li>
+            <strong>Iframe-based isolation</strong> — no CSS or DOM leakage
+          </li>
+          <li>
+            <strong>Controlled editing</strong> — only intended regions are
+            editable
+          </li>
+          <li>
+            <strong>Safe HTML output</strong> — editor artifacts removed before
+            export
+          </li>
+          <li>
+            <strong>Framework-agnostic</strong> — React, Angular, Vue, or
+            Vanilla
+          </li>
+        </ul>
+
+        <h2>What this is NOT</h2>
+
+        <div class="callout warning">
+          rich-html-editor intentionally avoids being a page builder or a
+          free-form WYSIWYG editor.
+        </div>
+
+        <ul>
+          <li>❌ No drag-and-drop layout editing</li>
+          <li>❌ No arbitrary DOM manipulation</li>
+          <li>❌ No inline CSS chaos</li>
+          <li>❌ No uncontrolled HTML editing</li>
+        </ul>
+
+        <p>
+          These constraints are what make the editor
+          <strong>safe and predictable</strong>.
+        </p>
+
+        <h2>Try it live</h2>
+
+        <p>
+          The fastest way to understand how the editor works is to use the live
+          playground.
+        </p>
+
+        <div class="callout">
+          👉
+          <a href="../index.html"><strong>Open the Playground</strong></a>
+        </div>
+
+        <h2>Next steps</h2>
+
+        <ul>
+          <li>
+            <a href="./getting-started.html">Getting Started</a> — initialize
+            your first editor
+          </li>
+          <li>
+            <a href="./concepts.html">Core Concepts</a> — understand the mental
+            model
+          </li>
+          <li>
+            <a href="./browser-usage.html">Browser Usage</a> — CDN & iframe
+            setup
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <!-- ================= Footer ================= -->
+    <footer class="site-footer">
+      © 2025 rich-html-editor · MIT License ·
+      <a href="https://github.com/akshaypatil1/rich-html-editor" target="_blank"
+        >GitHub</a
+      >
+    </footer>
+    <script src="../assets/search.js"></script>
+    <script src="../assets/nav.js"></script>
+
+    <!-- Optional JS (added later) -->
+    <!-- <script src="../assets/nav.js"></script> -->
+  </body>
+</html>

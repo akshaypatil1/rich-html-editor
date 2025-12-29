@@ -1,6 +1,6 @@
 # rich-html-editor
 
-[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor) [![license](https://img.shields.io/npm/l/rich-html-editor.svg)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor) [![license](https://img.shields.io/npm/l/rich-html-editor.svg)](LICENSE) [![Playground](https://img.shields.io/badge/demo-playground-blue)](https://akshaypatil1.github.io/rich-html-editor/)
 
 > **Edit HTML templates safely — without breaking layout or CSS.**
 
@@ -101,36 +101,39 @@ yarn add rich-html-editor
 
 ---
 
-## ⚡ Quick Start (Browser / iframe)
+## Quick Start (Browser / iframe)
 
 The editor initializes on an `HTMLIFrameElement`.
 
 > ⚠️ The iframe must be **same-origin**. Use `srcdoc` for safety.
 
 ```html
-<script type="module">
-  import {
-    initRichEditor,
-    getCleanHTML,
-    editorEventEmitter,
-  } from "rich-html-editor";
+<!-- CDN (browser) -->
+<script src="https://unpkg.com/rich-html-editor@latest"></script>
 
-  const iframe = document.createElement("iframe");
-  iframe.srcdoc =
-    "<!doctype html><html><head></head><body><div>Edit me</div></body></html>";
+<iframe id="frame"></iframe>
 
-  document.body.appendChild(iframe);
+<script>
+  const iframe = document.getElementById("frame");
 
-  initRichEditor(iframe, { maxStackSize: 50 });
+  iframe.srcdoc = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><div>Edit me</div></body></html>`;
 
-  const off = editorEventEmitter.on("contentChanged", (event) => {
-    console.log("Content changed:", event);
+  const EditorClass =
+    (window.RichHtmlEditor &&
+      (window.RichHtmlEditor.RichHtmlEditor || window.RichHtmlEditor)) ||
+    undefined;
+  let editor;
+
+  iframe.addEventListener("load", () => {
+    if (!EditorClass) {
+      console.warn(
+        "RichHtmlEditor not found on window. Did you load the CDN script?"
+      );
+      return;
+    }
+    editor = new EditorClass({ iframe, highlightEditable: true });
+    editor.init();
   });
-
-  const html = getCleanHTML();
-  console.log(html);
-
-  // off(); // unsubscribe when needed
 </script>
 ```
 

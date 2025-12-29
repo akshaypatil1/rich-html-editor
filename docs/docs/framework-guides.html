@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Framework Guides – rich-html-editor</title>
+
+    <meta
+      name="description"
+      content="Integrate rich-html-editor with React, Angular, Vue, and Vanilla JS using safe iframe lifecycle patterns."
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+<rect width='100' height='100' rx='20' fill='%23020217'/>
+<text x='50%' y='60%' text-anchor='middle'
+font-size='48' fill='%2338bdf8'
+font-family='Arial, Helvetica'>AP</text>
+</svg>"
+    />
+
+    <!-- Shared styles -->
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+
+  <body>
+    <!-- ================= Header ================= -->
+    <header class="site-header">
+      <div class="site-header-inner">
+        <div>
+          <div class="site-title">rich-html-editor</div>
+          <div class="site-subtitle">Safe, template-driven HTML editing</div>
+        </div>
+        <div class="doc-search">
+          <input
+            id="doc-search"
+            type="search"
+            placeholder="Search documentation…"
+            autocomplete="off"
+          />
+          <div id="search-results" class="search-results hidden"></div>
+        </div>
+        <nav class="top-nav">
+          <a href="../index.html">Playground</a>
+          <a href="./index.html">Documentation</a>
+          <a
+            href="https://github.com/akshaypatil1/rich-html-editor"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <!-- ================= Main Layout ================= -->
+    <main class="layout">
+      <!-- ========== Sidebar ========== -->
+      <aside class="sidebar">
+        <h4>Introduction</h4>
+        <a href="./index.html">Overview</a>
+        <a href="./getting-started.html">Getting Started</a>
+        <a href="./concepts.html">Core Concepts</a>
+
+        <h4>Usage</h4>
+        <a href="./browser-usage.html">Browser Usage</a>
+        <a href="./framework-guides.html">Framework Guides</a>
+
+        <h4>Reference</h4>
+        <a href="./api.html">API Reference</a>
+        <a href="./changelog.html">Changelog</a>
+
+        <h4>Advanced</h4>
+        <a href="./security.html">Security & Safety</a>
+        <a href="./faq.html">FAQ</a>
+        <a href="./roadmap.html">Roadmap</a>
+      </aside>
+
+      <!-- ========== Content ========== -->
+      <section class="content">
+        <h1>Framework Guides</h1>
+
+        <p>
+          This guide shows how to integrate
+          <strong>rich-html-editor</strong> safely in popular frameworks.
+        </p>
+
+        <div class="callout">
+          The key rule across all frameworks:
+          <strong>initialize the editor only after the iframe has loaded</strong
+          >.
+        </div>
+
+        <!-- ================= React ================= -->
+        <h2>React</h2>
+
+        <pre><code>import { useEffect, useRef } from "react";
+import { RichHtmlEditor } from "rich-html-editor";
+
+export default function Editor() {
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+
+    iframe.srcdoc = `
+      &lt;html&gt;
+        &lt;body&gt;
+          &lt;h1&gt;Editable&lt;/h1&gt;
+        &lt;/body&gt;
+      &lt;/html&gt;
+    `;
+
+    const onLoad = () => {
+      const editor = new RichHtmlEditor({
+        iframe,
+      });
+      editor.init();
+    };
+
+    iframe.addEventListener("load", onLoad);
+    return () => iframe.removeEventListener("load", onLoad);
+  }, []);
+
+  return &lt;iframe ref={iframeRef} title="Editor" /&gt;;
+}</code></pre>
+
+        <!-- ================= Angular ================= -->
+        <h2>Angular</h2>
+
+        <pre><code>import {
+  Component,
+  ViewChild,
+  ElementRef,
+  AfterViewInit,
+} from "@angular/core";
+import { RichHtmlEditor } from "rich-html-editor";
+
+@Component({
+  selector: "app-editor",
+  template: "&lt;iframe #frame&gt;&lt;/iframe&gt;",
+})
+export class EditorComponent implements AfterViewInit {
+  @ViewChild("frame") iframeRef!: ElementRef;
+
+  ngAfterViewInit() {
+    const iframe = this.iframeRef.nativeElement;
+
+    iframe.srcdoc = `
+      &lt;html&gt;
+        &lt;body&gt;
+          &lt;p&gt;Editable&lt;/p&gt;
+        &lt;/body&gt;
+      &lt;/html&gt;
+    `;
+
+    iframe.addEventListener("load", () => {
+      const editor = new RichHtmlEditor({ iframe });
+      editor.init();
+    });
+  }
+}</code></pre>
+
+        <!-- ================= Vue ================= -->
+        <h2>Vue</h2>
+
+        <pre><code>&lt;template&gt;
+  &lt;iframe ref="iframe"&gt;&lt;/iframe&gt;
+&lt;/template&gt;
+
+&lt;script setup&gt;
+import { onMounted, ref } from "vue";
+import { RichHtmlEditor } from "rich-html-editor";
+
+const iframe = ref(null);
+
+onMounted(() =&gt; {
+    iframe.value.srcdoc = `
+    &lt;html&gt;
+      &lt;body&gt;
+        &lt;div&gt;Editable&lt;/div&gt;
+      &lt;/body&gt;
+    &lt;/html&gt;
+  `;
+
+  iframe.value.addEventListener("load", () =&gt; {
+    const editor = new RichHtmlEditor({
+      iframe: iframe.value,
+    });
+    editor.init();
+  });
+});
+&lt;/script&gt;</code></pre>
+
+        <!-- ================= Vanilla ================= -->
+        <h2>Vanilla JavaScript</h2>
+
+        <pre><code>const iframe = document.querySelector("iframe");
+
+        iframe.srcdoc = `
+          &lt;html&gt;
+            &lt;body&gt;
+              &lt;span&gt;Editable&lt;/span&gt;
+            &lt;/body&gt;
+          &lt;/html&gt;
+        `;
+
+        iframe.addEventListener("load", () => {
+          const editor = new RichHtmlEditor.RichHtmlEditor({
+            iframe,
+          });
+          editor.init();
+        });</code></pre>
+
+        <h2>Lifecycle summary</h2>
+
+        <ul>
+          <li>Set iframe HTML</li>
+          <li>Wait for iframe load</li>
+          <li>Create editor instance</li>
+          <li>Call <code>init()</code></li>
+        </ul>
+
+        <h2>Next steps</h2>
+
+        <ul>
+          <li>
+            <a href="./security.html">Security & Safety</a> — iframe sandboxing
+            & sanitization
+          </li>
+          <li><a href="./faq.html">FAQ</a> — common integration questions</li>
+          <li><a href="./roadmap.html">Roadmap</a> — planned features</li>
+        </ul>
+      </section>
+    </main>
+
+    <!-- ================= Footer ================= -->
+    <footer class="site-footer">© 2025 rich-html-editor · MIT License</footer>
+    <script src="../assets/search.js"></script>
+    <script src="../assets/nav.js"></script>
+  </body>
+</html>

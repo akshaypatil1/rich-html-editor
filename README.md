@@ -1,6 +1,6 @@
 # rich-html-editor
 
-[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor) [![license](https://img.shields.io/npm/l/rich-html-editor.svg)](LICENSE) [![Playground](https://img.shields.io/badge/demo-playground-blue)](https://akshaypatil1.github.io/rich-html-editor/)
+[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor) [![license](https://img.shields.io/npm/l/rich-html-editor.svg)](LICENSE) [![Playground](https://img.shields.io/badge/demo-playground-blue)](https://akshaypatil1.github.io/rich-html-editor/) [![Documentation](https://img.shields.io/badge/docs-documentation-success)](https://akshaypatil1.github.io/rich-html-editor/docs/)
 
 > **Edit HTML templates safely — without breaking layout or CSS.**
 
@@ -46,6 +46,14 @@ Most rich text editors allow users to edit _anything_ — which often leads to b
 - 🛠️ Focused on **safe, controlled editing**
 - 👩‍💼 Ideal for **non-technical users**
 - ⚙️ Framework-agnostic (React, Angular, Vue, Vanilla JS)
+
+---
+
+## Documentation
+
+Explore guides, concepts, API reference, and examples:
+
+👉 **https://akshaypatil1.github.io/rich-html-editor/docs/**
 
 ---
 

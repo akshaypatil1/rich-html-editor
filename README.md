@@ -9,6 +9,15 @@ It enables **controlled, template-driven editing**, not free-form WYSIWYG chaos.
 
 ---
 
+### Release v1.2.1 — 2025-12-29
+
+- Packaging: added an IIFE/browser build (`dist/index.global.js`) and `browser`/`unpkg` fields to improve script-tag / CDN usage. The global is exposed as `RichHtmlEditor`.
+- Build: adjusted `tsup` config to produce `iife` and set `globalName`; `umd` is not produced by esbuild (use Rollup if UMD is required).
+
+---
+
+---
+
 ## 🎥 Demo
 
 Below is a short demo showing how **rich-html-editor** allows inline editing of an HTML template using a toolbar embedded inside an iframe.

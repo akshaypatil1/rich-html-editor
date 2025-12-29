@@ -18,6 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.1] - 2025-12-29
+
+### Changed
+
+- Packaging: Added an IIFE browser build (`dist/index.global.js`) and `browser`/`unpkg` fields in `package.json` so the library can be used via a `<script>` tag or CDNs.
+- Build: set `globalName` to `RichHtmlEditor` for the IIFE/global bundle.
+
+---
+
 ## [1.2.0] - 2025-12-29
 
 ### Added

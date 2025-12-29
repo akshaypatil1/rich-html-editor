@@ -22,6 +22,47 @@ font-family='Arial, Helvetica'>AP</text>
 </svg>"
     />
     <link rel="stylesheet" href="../assets/styles.css" />
+    <style>
+      /* Minor zero-md polish to match docs theme */
+      zero-md {
+        display: block;
+        font-family: inherit;
+      }
+
+      zero-md::part(markdown-body) {
+        color: var(--text);
+        line-height: 1.6;
+      }
+
+      zero-md::part(markdown-body) h1,
+      zero-md::part(markdown-body) h2,
+      zero-md::part(markdown-body) h3 {
+        margin-top: 1.5em;
+      }
+
+      zero-md::part(markdown-body) ul {
+        margin-left: 1.25em;
+      }
+
+      zero-md::part(markdown-body) hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 2em 0;
+      }
+
+      zero-md::part(markdown-body) code {
+        background: #020617;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 2px 4px;
+      }
+
+      zero-md::part(markdown-body) pre code {
+        display: block;
+        padding: 12px;
+        overflow-x: auto;
+      }
+    </style>
   </head>
 
   <body>
@@ -78,44 +119,23 @@ font-family='Arial, Helvetica'>AP</text>
         <h1>Changelog</h1>
 
         <p class="muted">
-          This page is automatically generated from
-          <code>CHANGELOG.md</code>.
+          This page is rendered directly from
+          <code>docs/CHANGELOG.md</code>.
         </p>
 
-        <div id="changelog-content">Loading changelog…</div>
+        <!-- Markdown renderer -->
+        <zero-md src="../CHANGELOG.md"></zero-md>
       </section>
     </main>
 
     <footer class="site-footer">© 2025 rich-html-editor · MIT License</footer>
 
-    <!-- <script src="../assets/markdown.js"></script> -->
     <script src="../assets/search.js"></script>
     <script src="../assets/nav.js"></script>
-    <!-- Include these in your <head> or before </body> -->
     <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2/webcomponents-loader.min.js"></script>
     <script
       type="module"
       src="https://cdn.jsdelivr.net/gh/zerodevx/zero-md@1/src/zero-md.min.js"
     ></script>
-
-    <!-- Use the tag in your body -->
-    <body>
-      <div class="markdown-body">
-        <zero-md src="../CHANGELOG.md"></zero-md>
-      </div>
-    </body>
-
-    <!-- <script>
-      fetch("../CHANGELOG.md")
-        .then((res) => res.text())
-        .then((md) => {
-          document.getElementById("changelog-content").innerHTML =
-            window.renderMarkdown(md);
-        })
-        .catch(() => {
-          document.getElementById("changelog-content").innerHTML =
-            "<p>Unable to load changelog.</p>";
-        });
-    </script> -->
   </body>
 </html>

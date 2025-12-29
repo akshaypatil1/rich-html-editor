@@ -52,6 +52,23 @@ interface EditorConfig {
     };
 }
 
+declare class RichHtmlEditor {
+    private iframeWindow;
+    private iframeEl?;
+    private config?;
+    constructor(options: {
+        iframe: Window | HTMLIFrameElement | string;
+    } & Partial<EditorConfig>);
+    init(): void;
+    getHTML(): string;
+    static attachToWindow(force?: boolean): void;
+}
+declare global {
+    interface Window {
+        RichHtmlEditor?: typeof RichHtmlEditor;
+    }
+}
+
 /**
  * Initialize the rich HTML editor on an iframe element
  */
@@ -70,4 +87,4 @@ declare class EditorEventEmitter {
 declare const editorEventEmitter: EditorEventEmitter;
 declare function getEditorEventEmitter(): EditorEventEmitter;
 
-export { type EditorConfig, type EditorEvent, EditorEventEmitter, type EditorEventHandler, type EditorEventType, type FontSizeMap, type FormatState, type FormattingCommand, type TextAlignment, type ToolbarOptions, editorEventEmitter, getCleanHTML, getEditorEventEmitter, initRichEditor };
+export { type EditorConfig, type EditorEvent, EditorEventEmitter, type EditorEventHandler, type EditorEventType, type FontSizeMap, type FormatState, type FormattingCommand, RichHtmlEditor, type TextAlignment, type ToolbarOptions, editorEventEmitter, getCleanHTML, getEditorEventEmitter, initRichEditor };

@@ -520,6 +520,7 @@ var init_state = __esm({
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  RichHtmlEditor: () => RichHtmlEditor,
   editorEventEmitter: () => editorEventEmitter,
   getCleanHTML: () => getCleanHTML,
   getEditorEventEmitter: () => getEditorEventEmitter,
@@ -2496,10 +2497,69 @@ function getCleanHTML() {
   }
 }
 
+// src/RichHtmlEditor.ts
+var RichHtmlEditor = class _RichHtmlEditor {
+  constructor(options) {
+    const { iframe, ...cfg } = options;
+    this.config = Object.keys(cfg).length ? cfg : void 0;
+    if (typeof iframe === "string") {
+      const el = document.querySelector(iframe);
+      if (!el) throw new Error(`Iframe selector "${iframe}" not found`);
+      if (!(el instanceof HTMLIFrameElement))
+        throw new Error(`Selector "${iframe}" did not resolve to an iframe`);
+      if (!el.contentWindow) throw new Error("Iframe has no contentWindow");
+      this.iframeEl = el;
+      this.iframeWindow = el.contentWindow;
+    } else if (iframe && iframe.contentWindow) {
+      const el = iframe;
+      if (!el.contentWindow) throw new Error("Iframe has no contentWindow");
+      this.iframeEl = el;
+      this.iframeWindow = el.contentWindow;
+    } else if (iframe && iframe.document) {
+      this.iframeWindow = iframe;
+      try {
+        const candidates = Array.from(
+          document.querySelectorAll("iframe")
+        );
+        const found = candidates.find(
+          (f) => f.contentWindow === this.iframeWindow
+        );
+        if (found) this.iframeEl = found;
+      } catch (e) {
+      }
+    } else {
+      throw new Error(
+        "Invalid `iframe` option. Provide a `Window`, `HTMLIFrameElement`, or selector string."
+      );
+    }
+  }
+  init() {
+    if (!this.iframeEl) {
+      throw new Error(
+        "Unable to initialize: iframe element not available. Provide an iframe element or selector."
+      );
+    }
+    initRichEditor(this.iframeEl, this.config);
+  }
+  getHTML() {
+    return getCleanHTML();
+  }
+  static attachToWindow(force = false) {
+    if (typeof window === "undefined") return;
+    if (!window.RichHtmlEditor || force) {
+      window.RichHtmlEditor = _RichHtmlEditor;
+    }
+  }
+};
+if (typeof window !== "undefined") {
+  RichHtmlEditor.attachToWindow();
+}
+
 // src/index.ts
 init_events();
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  RichHtmlEditor,
   editorEventEmitter,
   getCleanHTML,
   getEditorEventEmitter,

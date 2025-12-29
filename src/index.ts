@@ -1,7 +1,9 @@
-// Main entry point for the rich-html-editor util
-// Plug-and-play HTML editor API
+// Public API
 
-// Core functions
+// Class-based editor (browser + framework usage)
+export { default as RichHtmlEditor } from "./RichHtmlEditor";
+
+// Functional API (advanced usage)
 export { initRichEditor, getCleanHTML } from "./core/editor";
 
 // Types

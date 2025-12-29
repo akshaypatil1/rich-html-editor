@@ -88,11 +88,24 @@ font-family='Arial, Helvetica'>AP</text>
 
     <footer class="site-footer">© 2025 rich-html-editor · MIT License</footer>
 
-    <script src="../assets/markdown.js"></script>
+    <!-- <script src="../assets/markdown.js"></script> -->
     <script src="../assets/search.js"></script>
     <script src="../assets/nav.js"></script>
+    <!-- Include these in your <head> or before </body> -->
+    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2/webcomponents-loader.min.js"></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/gh/zerodevx/zero-md@1/src/zero-md.min.js"
+    ></script>
 
-    <script>
+    <!-- Use the tag in your body -->
+    <body>
+      <div class="markdown-body">
+        <zero-md src="../CHANGELOG.md"></zero-md>
+      </div>
+    </body>
+
+    <!-- <script>
       fetch("../CHANGELOG.md")
         .then((res) => res.text())
         .then((md) => {
@@ -103,6 +116,6 @@ font-family='Arial, Helvetica'>AP</text>
           document.getElementById("changelog-content").innerHTML =
             "<p>Unable to load changelog.</p>";
         });
-    </script>
+    </script> -->
   </body>
 </html>

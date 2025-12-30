@@ -33,6 +33,9 @@ function createModal(doc: Document) {
   const fileInput = doc.createElement("input");
   fileInput.type = "file";
   fileInput.accept = "image/*";
+  // Ensure the input fits inside the modal
+  fileInput.style.width = "100%";
+  fileInput.style.boxSizing = "border-box";
   uploadPane.appendChild(fileInput);
   const uploadMsg = doc.createElement("div");
   uploadMsg.className = "rhe-img-msg";
@@ -44,6 +47,9 @@ function createModal(doc: Document) {
   const urlInput = doc.createElement("input");
   urlInput.type = "url";
   urlInput.placeholder = "https://example.com/image.jpg";
+  // Ensure the input fits inside the modal
+  urlInput.style.width = "100%";
+  urlInput.style.boxSizing = "border-box";
   urlPane.appendChild(urlInput);
   const urlMsg = doc.createElement("div");
   urlMsg.className = "rhe-img-msg";

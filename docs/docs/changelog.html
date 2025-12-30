@@ -21,6 +21,11 @@ font-size='48' fill='%2338bdf8'
 font-family='Arial, Helvetica'>AP</text>
 </svg>"
     />
+    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2/webcomponents-loader.min.js"></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/gh/zerodevx/zero-md@1/src/zero-md.min.js"
+    ></script>
     <link rel="stylesheet" href="../assets/styles.css" />
     <style>
       /* Minor zero-md polish to match docs theme */
@@ -62,9 +67,6 @@ font-family='Arial, Helvetica'>AP</text>
         padding: 12px;
         overflow-x: auto;
       }
-      .markdown-body {
-        color: #ffffff !important;
-      }
     </style>
   </head>
 
@@ -86,7 +88,7 @@ font-family='Arial, Helvetica'>AP</text>
         </div>
         <nav class="top-nav">
           <a href="../index.html">Playground</a>
-          <a href="./index.html">Documentation</a>
+          <a href="./index.html" class="active">Documentation</a>
           <a
             href="https://github.com/akshaypatil1/rich-html-editor"
             target="_blank"
@@ -127,7 +129,15 @@ font-family='Arial, Helvetica'>AP</text>
         </p>
 
         <!-- Markdown renderer -->
-        <zero-md src="../CHANGELOG.md"></zero-md>
+        <zero-md src="../CHANGELOG.md">
+          <template>
+            <style>
+              .markdown-body {
+                color: #ffffff !important;
+              }
+            </style>
+          </template>
+        </zero-md>
       </section>
     </main>
 
@@ -135,10 +145,5 @@ font-family='Arial, Helvetica'>AP</text>
 
     <script src="../assets/search.js"></script>
     <script src="../assets/nav.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@webcomponents/webcomponentsjs@2/webcomponents-loader.min.js"></script>
-    <script
-      type="module"
-      src="https://cdn.jsdelivr.net/gh/zerodevx/zero-md@1/src/zero-md.min.js"
-    ></script>
   </body>
 </html>

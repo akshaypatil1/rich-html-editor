@@ -18,6 +18,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.3] - 2025-12-30
+
+### Fixed
+
+- Image modal UI: fixed layout/overflow issue in the image editor modal so input fields and controls no longer overflow on narrow modals. Improved responsive styling and box-sizing handling for inputs.
+
+---
+
+## [1.2.2] - 2025-12-29
+
+### Changed
+
+- Packaging: Fixed IIFE/global bundle setup and packaging metadata so the library can be consumed via a <script> tag or CDN (`dist/index.global.js`). Updated related build artifacts and maps.
+- API/exports: Added `RichHtmlEditor` top-level class file and applied small packaging/export polish (see commit "iife setup fix").
+- Docs: Updated `README.md` and packaging notes to reflect IIFE/global usage.
+
+---
+
 ## [1.2.1] - 2025-12-29
 
 ### Changed

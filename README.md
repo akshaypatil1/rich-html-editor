@@ -1,6 +1,13 @@
 # rich-html-editor
 
-[![npm version](https://img.shields.io/npm/v/rich-html-editor.svg)](https://www.npmjs.com/package/rich-html-editor) [![license](https://img.shields.io/npm/l/rich-html-editor.svg)](LICENSE) [![Playground](https://img.shields.io/badge/demo-playground-blue)](https://akshaypatil1.github.io/rich-html-editor/) [![Documentation](https://img.shields.io/badge/docs-documentation-success)](https://akshaypatil1.github.io/rich-html-editor/docs/)
+[![npm version](https://img.shields.io/npm/v/rich-html-editor?logo=npm)](https://www.npmjs.com/package/rich-html-editor)
+[![license](https://img.shields.io/npm/l/rich-html-editor?logo=open-source-initiative)](LICENSE)
+[![downloads](https://img.shields.io/npm/dm/rich-html-editor?logo=npm)](https://www.npmjs.com/package/rich-html-editor)
+[![Playground](https://img.shields.io/badge/demo-live_playground-blue?logo=google-chrome)](https://akshaypatil1.github.io/rich-html-editor/)
+[![Documentation](https://img.shields.io/badge/docs-documentation-success?logo=read-the-docs)](https://akshaypatil1.github.io/rich-html-editor/docs/)
+![TypeScript](https://img.shields.io/badge/types-TypeScript-blue?logo=typescript)
+![Framework Agnostic](https://img.shields.io/badge/framework-agnostic-green)
+![Bundle Size](https://img.shields.io/bundlephobia/minzip/rich-html-editor)
 
 > **Edit HTML templates safely — without breaking layout or CSS.**
 

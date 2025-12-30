@@ -807,6 +807,8 @@ function createModal(doc) {
   const fileInput = doc.createElement("input");
   fileInput.type = "file";
   fileInput.accept = "image/*";
+  fileInput.style.width = "100%";
+  fileInput.style.boxSizing = "border-box";
   uploadPane.appendChild(fileInput);
   const uploadMsg = doc.createElement("div");
   uploadMsg.className = "rhe-img-msg";
@@ -817,6 +819,8 @@ function createModal(doc) {
   const urlInput = doc.createElement("input");
   urlInput.type = "url";
   urlInput.placeholder = "https://example.com/image.jpg";
+  urlInput.style.width = "100%";
+  urlInput.style.boxSizing = "border-box";
   urlPane.appendChild(urlInput);
   const urlMsg = doc.createElement("div");
   urlMsg.className = "rhe-img-msg";

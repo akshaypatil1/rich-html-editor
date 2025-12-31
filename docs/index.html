@@ -276,30 +276,94 @@ font-family='Arial, Helvetica'>AP</text>
       let editor;
 
       iframe.srcdoc = `
-<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>Demo</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    h1, h2 { color: #0b64a0; }
-  </style>
-</head>
-<body>
-  <h1>Editable Document Title</h1>
-  <p>This paragraph is editable.</p>
+      <!doctype html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Rich Demo</title>
+        <style>
+          /* Scoped demo styles to avoid affecting editor UI inside the iframe */
+          .rhe-demo { font-family: system-ui, Arial, sans-serif; padding: 24px; line-height: 1.6; color:#0b2740; }
+          .rhe-demo h1 { color: #0b64a0; margin-top: 0 }
+          .rhe-demo h2, .rhe-demo h3, .rhe-demo h4 { color: #0b4f86 }
+          .rhe-demo .gallery { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0 }
+          .rhe-demo .gallery img { width:160px; height:100px; object-fit:cover; border-radius:8px }
+          .rhe-demo table { width:100%; border-collapse:collapse; margin:12px 0 }
+          .rhe-demo table th, .rhe-demo table td { border:1px solid #e2e8f0; padding:8px; text-align:left }
+          .rhe-demo pre { background:#0f172a; color:#e6eef8; padding:12px; border-radius:8px; overflow:auto }
+          .rhe-demo code { background:#f3f4f6; padding:2px 6px; border-radius:4px; font-family:monospace }
+          .rhe-demo blockquote { border-left:4px solid #c7e0ff; padding-left:12px; color:#334155; background:#f8fafc; margin:12px 0; border-radius:4px }
+          .rhe-demo details { margin:12px 0 }
+          .rhe-demo .form-row { display:flex; gap:8px; margin-bottom:8px }
+          .rhe-demo .form-row input, .rhe-demo .form-row textarea { padding:8px; border:1px solid #e2e8f0; border-radius:6px }
+          .rhe-demo .demo-button { background:#0b64a0; color:white; border:none; padding:8px 12px; border-radius:6px }
+          .rhe-demo figure { margin:16px 0 }
+          .rhe-demo figcaption { color:#475569; font-size:13px }
+          .rhe-demo iframe.media { max-width:100%; border-radius:8px }
+        </style>
+      </head>
+      <body>
+        <div class="rhe-demo">
+          <h1>Editable Document — Rich Demo</h1>
+        <p>Welcome to the editable playground. Try selecting text and applying formatting like <strong>bold</strong>, <em>italic</em>, <a href="#">links</a>, and other rich formatting.</p>
 
-  <h2>Section Heading</h2>
-  <p>Try bold, italic, links, and formatting.</p>
+        <h2>Article Example</h2>
+        <article>
+          <p>This paragraph contains an <a href="https://example.com">external link</a> and some <strong>important</strong> inline text. Edit freely.</p>
 
-  <figure>
-    <img src="https://picsum.photos/seed/demo/200" />
-    <figcaption>Editable caption</figcaption>
-  </figure>
-</body>
-</html>
-`;
+          <blockquote>“Good design is as little design as possible.” — Dieter Rams</blockquote>
+
+          <h3>Ordered Steps</h3>
+          <ol>
+            <li>Write content</li>
+            <li>Format using the toolbar</li>
+            <li>Export clean HTML</li>
+          </ol>
+
+          <h3>Feature Table</h3>
+          <table>
+            <thead>
+              <tr><th>Feature</th><th>Status</th><th>Notes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Bold</td><td>✔</td><td>Uses &lt;strong&gt; for semantics</td></tr>
+              <tr><td>Images</td><td>✔</td><td>Editable caption in &lt;figcaption&gt;</td></tr>
+              <tr><td>Tables</td><td>✔</td><td>Basic support</td></tr>
+            </tbody>
+          </table>
+
+          <h3>Code Example</h3>
+          <pre><code>function greet(name) {
+        return 'Hello, ' + name + '!';
+      }
+      </code></pre>
+
+          <figure>
+            <div class="gallery">
+              <img src="https://picsum.photos/seed/1/320/200" alt="Demo image 1" />
+              <img src="https://picsum.photos/seed/2/320/200" alt="Demo image 2" />
+              <img src="https://picsum.photos/seed/3/320/200" alt="Demo image 3" />
+            </div>
+            <figcaption>Edit captions and replace images as needed.</figcaption>
+          </figure>
+
+          <details>
+            <summary>Interactive demo form</summary>
+            <p>Try filling this small demo form — submission is prevented for the playground.</p>
+            <form onsubmit="event.preventDefault(); alert('Demo form submitted');">
+              <div class="form-row">
+                <input placeholder="Name" />
+                <input placeholder="Email" />
+              </div>
+              <textarea placeholder="Short note" style="width:100%;min-height:80px;margin-bottom:8px"></textarea>
+              <button type="submit" class="demo-button">Submit (demo)</button>
+            </form>
+          </details>
+          </article>
+        </div>
+      </body>
+      </html>
+      `;
 
       iframe.addEventListener("load", () => {
         initBtn.onclick = () => {

@@ -28,7 +28,7 @@ import {
  */
 export function initRichEditor(
   iframe: HTMLIFrameElement,
-  config?: EditorConfig
+  config?: EditorConfig,
 ) {
   try {
     if (!iframe || !(iframe instanceof HTMLIFrameElement)) {
@@ -38,7 +38,7 @@ export function initRichEditor(
     const doc = iframe.contentDocument;
     if (!doc) {
       throw new Error(
-        "Unable to access iframe contentDocument. Ensure iframe src is same-origin."
+        "Unable to access iframe contentDocument. Ensure iframe src is same-origin.",
       );
     }
 
@@ -77,7 +77,7 @@ export function getCleanHTML(): string {
     const doc = _getDoc();
     if (!doc) {
       console.warn(
-        "[rich-html-editor] getCleanHTML called before editor initialization"
+        "[rich-html-editor] getCleanHTML called before editor initialization",
       );
       return "";
     }

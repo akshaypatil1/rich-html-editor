@@ -3,7 +3,7 @@ export function makeColorInput(
   options: { onCommand: (command: string, value?: string) => void },
   title: string,
   command: string,
-  initialColor?: string
+  initialColor?: string,
 ) {
   const input = doc.createElement("input");
   input.type = "color";

@@ -23,9 +23,13 @@ describe("toolbar.render injectToolbar (render.ts)", () => {
     expect(toolbar).not.toBeNull();
     expect(toolbar!.getAttribute("role")).toBe("toolbar");
     expect(toolbar!.getAttribute("aria-label")).toBe(
-      "Rich text editor toolbar"
+      "Rich text editor toolbar",
     );
-    // ensure inserted as first child
-    expect(document.body.firstChild).toBe(toolbar);
+    // ensure inserted as first child of either body or the editor root
+    const root = document.getElementById("rhe-editor-root");
+    const firstChildIsToolbar =
+      document.body.firstChild === toolbar ||
+      (root && root.firstChild === toolbar);
+    expect(firstChildIsToolbar).toBe(true);
   });
 });

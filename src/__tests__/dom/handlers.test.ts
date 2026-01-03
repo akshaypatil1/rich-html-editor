@@ -42,13 +42,13 @@ describe("dom.handlers attachStandaloneHandlers", () => {
 
     // Ctrl/Cmd+B
     document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "b", ctrlKey: true, bubbles: true })
+      new KeyboardEvent("keydown", { key: "b", ctrlKey: true, bubbles: true }),
     );
     expect(boldSpy).toHaveBeenCalledWith("bold");
 
     // Ctrl/Cmd+Z -> undo
     document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true })
+      new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }),
     );
     expect(undoSpy).toHaveBeenCalled();
 
@@ -59,13 +59,13 @@ describe("dom.handlers attachStandaloneHandlers", () => {
         ctrlKey: true,
         shiftKey: true,
         bubbles: true,
-      })
+      }),
     );
     expect(redoSpy).toHaveBeenCalled();
 
     // Ctrl/Cmd+Y -> redo
     document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "y", ctrlKey: true, bubbles: true })
+      new KeyboardEvent("keydown", { key: "y", ctrlKey: true, bubbles: true }),
     );
     expect(redoSpy).toHaveBeenCalled();
   });
@@ -100,7 +100,7 @@ describe("dom.handlers attachStandaloneHandlers", () => {
 
     // dispatch Enter
     document.dispatchEvent(
-      new KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+      new KeyboardEvent("keydown", { key: "Enter", bubbles: true }),
     );
 
     const items = ul.querySelectorAll("li");

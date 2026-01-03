@@ -4,7 +4,7 @@ export function makeSelect(
   title: string,
   command: string,
   optionsList: { label: string; value: string }[],
-  initialValue?: string | null
+  initialValue?: string | null,
 ) {
   const select = doc.createElement("select");
   select.title = title;

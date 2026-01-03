@@ -1,5 +1,6 @@
 import { MAX_FILE_SIZE } from "../core/constants";
 import { pushStandaloneSnapshot } from "../core/state";
+import { getEditorRoot } from "./root";
 
 function createModal(doc: Document) {
   const overlay = doc.createElement("div");
@@ -208,8 +209,13 @@ export function openImageEditor(doc: Document, img: HTMLImageElement) {
     if (e.key === "Escape") close();
   });
 
-  // Insert overlay and focus
-  doc.body.appendChild(overlay);
+  // Insert overlay inside the editor root so global template CSS doesn't affect modal UI
+  try {
+    const root = getEditorRoot(doc);
+    root.appendChild(overlay);
+  } catch (e) {
+    doc.body.appendChild(overlay);
+  }
   (fileInput as HTMLInputElement).focus();
 }
 

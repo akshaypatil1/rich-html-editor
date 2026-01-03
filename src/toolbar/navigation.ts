@@ -1,7 +1,9 @@
 export function setupNavigation(toolbar: HTMLElement) {
   toolbar.addEventListener("keydown", (e: KeyboardEvent) => {
     const focusable = Array.from(
-      toolbar.querySelectorAll<HTMLElement>("button, select, input, [tabindex]")
+      toolbar.querySelectorAll<HTMLElement>(
+        "button, select, input, [tabindex]",
+      ),
     ).filter((el) => !el.hasAttribute("disabled"));
     if (!focusable.length) return;
     const idx = focusable.indexOf(document.activeElement as HTMLElement);

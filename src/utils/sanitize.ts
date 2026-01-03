@@ -8,7 +8,7 @@ import createDOMPurify from "dompurify";
  */
 export function sanitizeHtml(
   html: string,
-  ctx?: Window | Document | null
+  ctx?: Window | Document | null,
 ): string {
   if (!html) return "";
   // Try to get a Window reference

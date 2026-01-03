@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.4] - 2026-01-03
+
+### Fixed
+
+- Prevent UI style leakage from template pages: toolbar and modal UI are now mounted inside a scoped editor root (`#rhe-editor-root`), a conservative scoped CSS reset is injected, and a `getEditorRoot()` helper was added. This prevents site/global styles from breaking toolbar buttons, inputs, and popups. Tests updated to accept the new mount location.
+
+---
+
 ## [1.2.3] - 2025-12-30
 
 ### Fixed
@@ -30,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Packaging: Fixed IIFE/global bundle setup and packaging metadata so the library can be consumed via a <script> tag or CDN (`dist/index.global.js`). Updated related build artifacts and maps.
+- Packaging: Fixed IIFE/global bundle setup and packaging metadata so the library can be consumed via a `<script>` tag or CDN (`dist/index.global.js`). Updated related build artifacts and maps.
 - API/exports: Added `RichHtmlEditor` top-level class file and applied small packaging/export polish (see commit "iife setup fix").
 - Docs: Updated `README.md` and packaging notes to reflect IIFE/global usage.
 

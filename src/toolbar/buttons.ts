@@ -8,7 +8,7 @@ export function makeButton(
   command: string,
   value?: string,
   isActive?: boolean,
-  disabled?: boolean
+  disabled?: boolean,
 ) {
   const btn = doc.createElement("button");
   btn.type = "button";

@@ -40,7 +40,7 @@ describe("imageEditor", () => {
     const overlay = doc.querySelector(".rhe-img-modal-overlay") as HTMLElement;
     expect(overlay).toBeTruthy();
     const fileInput = overlay.querySelector(
-      'input[type="file"]'
+      'input[type="file"]',
     ) as HTMLInputElement;
     expect(fileInput).toBeTruthy();
 
@@ -56,7 +56,7 @@ describe("imageEditor", () => {
         this.result = fakeDataUrl;
         if (this.onload) {
           const ev = new ProgressEvent(
-            "load"
+            "load",
           ) as unknown as ProgressEvent<FileReader>;
           this.onload.call(this as any, ev);
         }
@@ -84,10 +84,10 @@ describe("imageEditor", () => {
     openImageEditor(doc, img);
     const overlay = doc.querySelector(".rhe-img-modal-overlay") as HTMLElement;
     const urlInput = overlay.querySelector(
-      'input[type="url"]'
+      'input[type="url"]',
     ) as HTMLInputElement;
     const applyBtn = Array.from(overlay.querySelectorAll("button")).find(
-      (b) => b.textContent === "Apply"
+      (b) => b.textContent === "Apply",
     ) as HTMLButtonElement;
     expect(urlInput).toBeTruthy();
     expect(applyBtn).toBeTruthy();
@@ -121,10 +121,10 @@ describe("imageEditor", () => {
     openImageEditor(doc, img);
     const overlay = doc.querySelector(".rhe-img-modal-overlay") as HTMLElement;
     const urlInput = overlay.querySelector(
-      'input[type="url"]'
+      'input[type="url"]',
     ) as HTMLInputElement;
     const applyBtn = Array.from(overlay.querySelectorAll("button")).find(
-      (b) => b.textContent === "Apply"
+      (b) => b.textContent === "Apply",
     ) as HTMLButtonElement;
 
     const testUrl = "https://cors-blocked.example.com/pic.jpg";

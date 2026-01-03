@@ -537,6 +537,40 @@ function injectStyles(doc) {
   const styleId = STYLE_ID;
   let styleEl = doc.getElementById(styleId);
   const css = `
+/* Scoped conservative reset for editor UI root to prevent template styles leaking in */
+#rhe-editor-root {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#rhe-editor-root *,
+#rhe-editor-root *::before,
+#rhe-editor-root *::after {
+  box-sizing: inherit;
+}
+/* Restore user-agent defaults for native controls inside the root */
+#rhe-editor-root button,
+#rhe-editor-root input,
+#rhe-editor-root textarea,
+#rhe-editor-root select {
+  all: revert;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+/* Basic focus visibility for accessibility inside root */
+#rhe-editor-root :focus {
+  outline: 2px solid Highlight;
+  outline-offset: 2px;
+}
+
 .${CLASS_EDITABLE}{outline:2px dashed ${HOVER_OUTLINE};cursor:text}
 .${CLASS_ACTIVE}{outline:2px solid ${ACTIVE_OUTLINE};cursor:text}
 #${TOOLBAR_ID} img{cursor:auto}
@@ -846,6 +880,28 @@ function injectStyles(doc) {
 // src/toolbar/render.ts
 init_constants();
 
+// src/dom/root.ts
+var EDITOR_ROOT_ID = "rhe-editor-root";
+function getEditorRoot(doc) {
+  let root = doc.getElementById(EDITOR_ROOT_ID);
+  if (root) return root;
+  root = doc.createElement("div");
+  root.id = EDITOR_ROOT_ID;
+  root.setAttribute("data-rhe-root", "true");
+  try {
+    if (doc.body && doc.body.firstChild)
+      doc.body.insertBefore(root, doc.body.firstChild);
+    else if (doc.body) doc.body.appendChild(root);
+    else doc.documentElement.appendChild(root);
+  } catch (e) {
+    try {
+      doc.documentElement.appendChild(root);
+    } catch (err) {
+    }
+  }
+  return root;
+}
+
 // src/toolbar/color.ts
 function makeColorInput(doc, options, title, command, initialColor) {
   const input = doc.createElement("input");
@@ -990,7 +1046,11 @@ function setupOverflow(doc, toolbar, options, format, helpers) {
     )
   );
   overflowMenu.appendChild(
-    helpers.makeColorInput("Text color", "foreColor", format.foreColor)
+    helpers.makeColorInput(
+      "Text color",
+      "foreColor",
+      format.foreColor
+    )
   );
   overflowMenu.appendChild(
     helpers.makeColorInput(
@@ -1075,7 +1135,9 @@ function makeSelect(doc, options, title, command, optionsList, initialValue) {
 function setupNavigation(toolbar) {
   toolbar.addEventListener("keydown", (e) => {
     const focusable = Array.from(
-      toolbar.querySelectorAll("button, select, input, [tabindex]")
+      toolbar.querySelectorAll(
+        "button, select, input, [tabindex]"
+      )
     ).filter((el) => !el.hasAttribute("disabled"));
     if (!focusable.length) return;
     const idx = focusable.indexOf(document.activeElement);
@@ -1250,7 +1312,12 @@ function injectToolbar(doc, options) {
     makeGroup: makeGroup2
   });
   setupNavigation(toolbar);
-  doc.body.insertBefore(toolbar, doc.body.firstChild);
+  try {
+    const root = getEditorRoot(doc);
+    root.insertBefore(toolbar, root.firstChild);
+  } catch (e) {
+    doc.body.insertBefore(toolbar, doc.body.firstChild);
+  }
 }
 
 // src/dom/handlers.ts
@@ -1451,7 +1518,12 @@ function openImageEditor(doc, img) {
   overlay.addEventListener("keydown", (e) => {
     if (e.key === "Escape") close();
   });
-  doc.body.appendChild(overlay);
+  try {
+    const root = getEditorRoot(doc);
+    root.appendChild(overlay);
+  } catch (e) {
+    doc.body.appendChild(overlay);
+  }
   fileInput.focus();
 }
 

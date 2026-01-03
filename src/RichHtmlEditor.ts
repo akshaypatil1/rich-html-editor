@@ -9,7 +9,7 @@ export default class RichHtmlEditor {
   constructor(
     options: {
       iframe: Window | HTMLIFrameElement | string;
-    } & Partial<EditorConfig>
+    } & Partial<EditorConfig>,
   ) {
     const { iframe, ...cfg } = options as any;
     this.config = Object.keys(cfg).length ? (cfg as EditorConfig) : undefined;
@@ -32,10 +32,10 @@ export default class RichHtmlEditor {
       // Try to locate the corresponding iframe element in the current document
       try {
         const candidates = Array.from(
-          document.querySelectorAll("iframe")
+          document.querySelectorAll("iframe"),
         ) as HTMLIFrameElement[];
         const found = candidates.find(
-          (f) => f.contentWindow === this.iframeWindow
+          (f) => f.contentWindow === this.iframeWindow,
         );
         if (found) this.iframeEl = found;
       } catch (e) {
@@ -43,7 +43,7 @@ export default class RichHtmlEditor {
       }
     } else {
       throw new Error(
-        "Invalid `iframe` option. Provide a `Window`, `HTMLIFrameElement`, or selector string."
+        "Invalid `iframe` option. Provide a `Window`, `HTMLIFrameElement`, or selector string.",
       );
     }
   }
@@ -51,7 +51,7 @@ export default class RichHtmlEditor {
   init() {
     if (!this.iframeEl) {
       throw new Error(
-        "Unable to initialize: iframe element not available. Provide an iframe element or selector."
+        "Unable to initialize: iframe element not available. Provide an iframe element or selector.",
       );
     }
     initRichEditor(this.iframeEl, this.config);

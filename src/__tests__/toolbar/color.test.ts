@@ -12,12 +12,12 @@ describe("toolbar.color makeColorInput", () => {
       document,
       { onCommand },
       "Text color",
-      "foreColor"
+      "foreColor",
     );
     document.body.appendChild(wrapper);
 
     const input = wrapper.querySelector(
-      "input[type=color]"
+      "input[type=color]",
     ) as HTMLInputElement;
     expect(input).not.toBeNull();
     expect(input.title).toBe("Text color");
@@ -29,7 +29,7 @@ describe("toolbar.color makeColorInput", () => {
     const wrapper = makeColorInput(document, { onCommand }, "C", "cmd", "#f00");
     document.body.appendChild(wrapper);
     const input = wrapper.querySelector(
-      "input[type=color]"
+      "input[type=color]",
     ) as HTMLInputElement;
     // short #f00 should become #ff0000
     expect(input.value).toBe("#ff0000");
@@ -42,11 +42,11 @@ describe("toolbar.color makeColorInput", () => {
       { onCommand },
       "C",
       "cmd",
-      "rgb(255,0,0)"
+      "rgb(255,0,0)",
     );
     document.body.appendChild(wrapper);
     const input = wrapper.querySelector(
-      "input[type=color]"
+      "input[type=color]",
     ) as HTMLInputElement;
     expect(input.value).toBe("#ff0000");
   });
@@ -57,11 +57,11 @@ describe("toolbar.color makeColorInput", () => {
       document,
       { onCommand },
       "Color",
-      "foreColor"
+      "foreColor",
     );
     document.body.appendChild(wrapper);
     const input = wrapper.querySelector(
-      "input[type=color]"
+      "input[type=color]",
     ) as HTMLInputElement;
 
     // create a paragraph and selection

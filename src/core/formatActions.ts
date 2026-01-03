@@ -6,7 +6,7 @@ export function handleToolbarCommand(command: string, value?: string) {
     const doc = _getDoc();
     if (!doc) {
       console.warn(
-        "[rich-html-editor] handleToolbarCommand called before initialization"
+        "[rich-html-editor] handleToolbarCommand called before initialization",
       );
       return;
     }
@@ -32,7 +32,7 @@ export function applyStandaloneCommand(command: string, value?: string) {
     const doc = _getDoc();
     if (!doc) {
       console.warn(
-        "[rich-html-editor] applyStandaloneCommand called before initialization"
+        "[rich-html-editor] applyStandaloneCommand called before initialization",
       );
       return;
     }
@@ -106,7 +106,7 @@ export function applyStandaloneCommand(command: string, value?: string) {
 function wrapSelectionWithElement(
   doc: Document,
   tagName: string,
-  style?: Partial<CSSStyleDeclaration>
+  style?: Partial<CSSStyleDeclaration>,
 ): void {
   const sel = doc.getSelection();
   if (!sel) return;
@@ -422,7 +422,7 @@ function clearSelectionFormatting(doc: Document) {
   // Final cleanup: ensure no leftover editor-marked elements remain
   const root = parent || doc.body;
   const leftover = Array.from(
-    (root as Element).querySelectorAll('[data-rhe-format="true"]')
+    (root as Element).querySelectorAll('[data-rhe-format="true"]'),
   );
   leftover.forEach((el) => {
     const tag = el.tagName;

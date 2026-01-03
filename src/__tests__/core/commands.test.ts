@@ -9,7 +9,7 @@ describe("URL Sanitization", () => {
 
     it("should block data: protocol", () => {
       expect(sanitizeURL("data:text/html,<script>alert('xss')</script>")).toBe(
-        ""
+        "",
       );
     });
 
@@ -31,7 +31,7 @@ describe("URL Sanitization", () => {
 
     it("should trim whitespace", () => {
       expect(sanitizeURL("  https://example.com  ")).toBe(
-        "https://example.com"
+        "https://example.com",
       );
     });
 
@@ -50,19 +50,19 @@ describe("URL Sanitization", () => {
 
     it("should handle complex URLs", () => {
       expect(sanitizeURL("github.com/user/repo")).toBe(
-        "https://github.com/user/repo"
+        "https://github.com/user/repo",
       );
     });
 
     it("should preserve query parameters", () => {
       expect(sanitizeURL("example.com?foo=bar&baz=qux")).toBe(
-        "https://example.com?foo=bar&baz=qux"
+        "https://example.com?foo=bar&baz=qux",
       );
     });
 
     it("should preserve URL fragments", () => {
       expect(sanitizeURL("example.com#section")).toBe(
-        "https://example.com#section"
+        "https://example.com#section",
       );
     });
   });

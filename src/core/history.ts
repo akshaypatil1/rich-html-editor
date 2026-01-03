@@ -14,7 +14,7 @@ export function handleUndo() {
     const doc = _getDoc();
     if (!doc) {
       console.warn(
-        "[rich-html-editor] handleUndo called before initialization"
+        "[rich-html-editor] handleUndo called before initialization",
       );
       return;
     }
@@ -102,7 +102,7 @@ export function handleUndo() {
                     /* ignore */
                   }
                   Object.keys(attrs).forEach((k) =>
-                    s.setAttribute(k, attrs[k])
+                    s.setAttribute(k, attrs[k]),
                   );
                   if (attrs.src) {
                     const p = new Promise<void>((resolve) => {
@@ -118,7 +118,7 @@ export function handleUndo() {
                     doc.head.appendChild(s);
                   } else {
                     const target = doc.body.querySelector(
-                      `[data-rhe-id="${parentId}"]`
+                      `[data-rhe-id="${parentId}"]`,
                     );
                     if (target) target.appendChild(s);
                     else doc.body.appendChild(s);
@@ -136,7 +136,7 @@ export function handleUndo() {
               const waiter = (Promise as any).allSettled
                 ? (Promise as any).allSettled(loadPromises)
                 : Promise.all(
-                    loadPromises.map((p) => p.catch(() => undefined))
+                    loadPromises.map((p) => p.catch(() => undefined)),
                   );
               waiter.then(() => {
                 try {
@@ -188,7 +188,7 @@ export function handleRedo() {
     const doc = _getDoc();
     if (!doc) {
       console.warn(
-        "[rich-html-editor] handleRedo called before initialization"
+        "[rich-html-editor] handleRedo called before initialization",
       );
       return;
     }
@@ -202,7 +202,7 @@ export function handleRedo() {
     }
     const safeNext = sanitizeHtml(
       next.replace(/^<!doctype html>\n?/i, ""),
-      doc
+      doc,
     );
     try {
       const parser = new DOMParser();
@@ -268,7 +268,7 @@ export function handleRedo() {
                     /* ignore */
                   }
                   Object.keys(attrs).forEach((k) =>
-                    s.setAttribute(k, attrs[k])
+                    s.setAttribute(k, attrs[k]),
                   );
                   if (attrs.src) {
                     const p = new Promise<void>((resolve) => {
@@ -284,7 +284,7 @@ export function handleRedo() {
                     doc.head.appendChild(s);
                   } else {
                     const target = doc.body.querySelector(
-                      `[data-rhe-id="${parentId}"]`
+                      `[data-rhe-id="${parentId}"]`,
                     );
                     if (target) target.appendChild(s);
                     else doc.body.appendChild(s);
@@ -302,7 +302,7 @@ export function handleRedo() {
               const waiter = (Promise as any).allSettled
                 ? (Promise as any).allSettled(loadPromises)
                 : Promise.all(
-                    loadPromises.map((p) => p.catch(() => undefined))
+                    loadPromises.map((p) => p.catch(() => undefined)),
                   );
               waiter.then(() => {
                 try {

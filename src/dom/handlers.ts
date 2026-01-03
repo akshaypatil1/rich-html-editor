@@ -51,7 +51,7 @@ export function attachStandaloneHandlers(doc: Document) {
       "code",
     ].join(",");
     const candidates = Array.from(
-      doc.querySelectorAll<HTMLElement>(selector)
+      doc.querySelectorAll<HTMLElement>(selector),
     ).filter((el) => isEditableCandidate(el));
     candidates.forEach((target) => {
       if (!target.hasAttribute("data-rhe-id")) {
@@ -108,7 +108,7 @@ export function attachStandaloneHandlers(doc: Document) {
       target.setAttribute("contenteditable", "true");
       target.focus();
     },
-    true
+    true,
   );
   doc.addEventListener("selectionchange", () => {
     injectToolbar(doc, {
@@ -166,7 +166,7 @@ export function attachStandaloneHandlers(doc: Document) {
         return;
       }
     },
-    true
+    true,
   );
 
   // Ensure Enter in lists creates a new list item (consistent across browsers)
@@ -202,6 +202,6 @@ export function attachStandaloneHandlers(doc: Document) {
       sel.addRange(range);
       // push snapshot will be triggered by input event after typing
     },
-    true
+    true,
   );
 }

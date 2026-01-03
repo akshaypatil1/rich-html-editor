@@ -50,10 +50,10 @@ describe("toolbar.overflow setupOverflow", () => {
     setupOverflow(document, toolbar, options, format, helpers as any);
 
     const overflowBtn = toolbar.querySelector(
-      ".toolbar-overflow-btn"
+      ".toolbar-overflow-btn",
     ) as HTMLButtonElement;
     const overflowMenu = toolbar.querySelector(
-      ".toolbar-overflow-menu"
+      ".toolbar-overflow-menu",
     ) as HTMLDivElement;
     expect(overflowBtn).not.toBeNull();
     expect(overflowMenu).not.toBeNull();
@@ -94,7 +94,7 @@ describe("toolbar.overflow setupOverflow", () => {
 
     // pointerdown outside closes
     document.body.dispatchEvent(
-      new PointerEvent("pointerdown", { bubbles: true })
+      new PointerEvent("pointerdown", { bubbles: true }),
     );
     expect(overflowMenu.hidden).toBe(true);
 
@@ -104,7 +104,7 @@ describe("toolbar.overflow setupOverflow", () => {
     // helpers appended at least one select and one input element
     expect(menu.querySelector("select")).not.toBeNull();
     expect(
-      menu.querySelector("input[type=color]") || menu.querySelector("button")
+      menu.querySelector("input[type=color]") || menu.querySelector("button"),
     ).not.toBeNull();
   });
 });

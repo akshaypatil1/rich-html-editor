@@ -13,7 +13,7 @@ describe("toolbar.buttons helpers", () => {
       "bold",
       undefined,
       true,
-      false
+      false,
     );
 
     expect(btn.tagName).toBe("BUTTON");

@@ -97,7 +97,7 @@ export function pushStandaloneSnapshot(clearRedo = true) {
   // transient editing state (contenteditable, toolbar classes, tabindex).
   try {
     const editableNodes = clone.querySelectorAll(
-      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE
+      "[contenteditable], ." + CLASS_EDITABLE + ", ." + CLASS_ACTIVE,
     );
     editableNodes.forEach((el) => {
       try {
@@ -120,7 +120,7 @@ export function pushStandaloneSnapshot(clearRedo = true) {
   // script content available to re-insert and execute on restore.
   try {
     const scripts = Array.from(
-      clone.querySelectorAll<HTMLScriptElement>("script")
+      clone.querySelectorAll<HTMLScriptElement>("script"),
     );
     scripts.forEach((s) => {
       try {
@@ -142,7 +142,7 @@ export function pushStandaloneSnapshot(clearRedo = true) {
         if (Object.keys(attrs).length) {
           placeholder.setAttribute(
             "data-rhe-script-attrs",
-            encodeURIComponent(JSON.stringify(attrs))
+            encodeURIComponent(JSON.stringify(attrs)),
           );
         }
         // mark parent editable region if present so we can reinsert in-place
@@ -150,7 +150,7 @@ export function pushStandaloneSnapshot(clearRedo = true) {
         if (parentMarker && parentMarker.getAttribute("data-rhe-id")) {
           placeholder.setAttribute(
             "data-rhe-script-parent",
-            parentMarker.getAttribute("data-rhe-id")!
+            parentMarker.getAttribute("data-rhe-id")!,
           );
         } else {
           placeholder.setAttribute("data-rhe-script-parent", "head");

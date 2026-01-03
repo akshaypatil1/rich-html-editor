@@ -35,7 +35,7 @@ export class EditorEventEmitter {
         } catch (error) {
           console.error(
             `[rich-html-editor] Error in event handler for ${event.type}:`,
-            error
+            error,
           );
         }
       });

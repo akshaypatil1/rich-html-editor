@@ -35,6 +35,7 @@ import {
   SIZE_OPTIONS,
   FORMAT_OPTIONS,
 } from "../core/constants";
+import { getEditorRoot } from "../dom/root";
 import { makeColorInput } from "./color";
 import { setupOverflow } from "./overflow";
 import {
@@ -64,7 +65,7 @@ export function injectToolbar(
       formatBlock?: string | null;
     };
     getSelectedElementInfo: () => string | null;
-  }
+  },
 ) {
   const existing = doc.getElementById(TOOLBAR_ID);
   if (existing) existing.remove();
@@ -83,7 +84,7 @@ export function injectToolbar(
     command: string,
     value?: string,
     isActive?: boolean,
-    disabled?: boolean
+    disabled?: boolean,
   ) =>
     _makeButton(
       doc,
@@ -93,14 +94,14 @@ export function injectToolbar(
       command,
       value,
       isActive,
-      disabled
+      disabled,
     );
 
   const makeSelect = (
     title: string,
     command: string,
     optionsList: { label: string; value: string }[],
-    initialValue?: string | null
+    initialValue?: string | null,
   ) =>
     _makeSelect(
       doc,
@@ -108,7 +109,7 @@ export function injectToolbar(
       title,
       command,
       optionsList,
-      initialValue
+      initialValue,
     );
 
   // Color input helper moved to ./color.ts
@@ -125,7 +126,7 @@ export function injectToolbar(
     "undo",
     undefined,
     false,
-    !options.canUndo()
+    !options.canUndo(),
   );
   // Undo/Redo are handled by the history module — call handlers directly
   undoBtn.onclick = () => options.onUndo();
@@ -136,7 +137,7 @@ export function injectToolbar(
     "redo",
     undefined,
     false,
-    !options.canRedo()
+    !options.canRedo(),
   );
   redoBtn.onclick = () => options.onRedo();
 
@@ -154,14 +155,14 @@ export function injectToolbar(
       "Format",
       "formatBlock",
       FORMAT_OPTIONS,
-      (format as any).formatBlock
-    )
+      (format as any).formatBlock,
+    ),
   );
   grp2.appendChild(
-    makeSelect("Font", "fontName", FONT_OPTIONS, (format as any).fontName)
+    makeSelect("Font", "fontName", FONT_OPTIONS, (format as any).fontName),
   );
   grp2.appendChild(
-    makeSelect("Size", "fontSize", SIZE_OPTIONS, (format as any).fontSize)
+    makeSelect("Size", "fontSize", SIZE_OPTIONS, (format as any).fontSize),
   );
   toolbar.appendChild(grp2);
   toolbar.appendChild(makeSep());
@@ -169,10 +170,10 @@ export function injectToolbar(
   // Section 3: Bold, Italic, Underline, Strikethrough
   const grp3 = makeGroup();
   grp3.appendChild(
-    makeButton(LABEL_BOLD, "Bold", "bold", undefined, format.bold)
+    makeButton(LABEL_BOLD, "Bold", "bold", undefined, format.bold),
   );
   grp3.appendChild(
-    makeButton(LABEL_ITALIC, "Italic", "italic", undefined, format.italic)
+    makeButton(LABEL_ITALIC, "Italic", "italic", undefined, format.italic),
   );
   grp3.appendChild(
     makeButton(
@@ -180,13 +181,13 @@ export function injectToolbar(
       "Underline",
       "underline",
       undefined,
-      format.underline
-    )
+      format.underline,
+    ),
   );
   grp3.appendChild(makeButton(LABEL_STRIKETHROUGH, "Strikethrough", "strike"));
   // Clear formatting button: removes editor-applied inline/block formatting
   grp3.appendChild(
-    makeButton(LABEL_CLEAR_FORMAT, "Clear formatting", "clearFormat")
+    makeButton(LABEL_CLEAR_FORMAT, "Clear formatting", "clearFormat"),
   );
   grp3.appendChild(
     makeButton(
@@ -194,8 +195,8 @@ export function injectToolbar(
       "Unordered list",
       "unorderedList",
       undefined,
-      (format as any).listType === "ul"
-    )
+      (format as any).listType === "ul",
+    ),
   );
   grp3.appendChild(
     makeButton(
@@ -203,8 +204,8 @@ export function injectToolbar(
       "Ordered list",
       "orderedList",
       undefined,
-      (format as any).listType === "ol"
-    )
+      (format as any).listType === "ol",
+    ),
   );
   toolbar.appendChild(grp3);
   toolbar.appendChild(makeSep());
@@ -213,10 +214,10 @@ export function injectToolbar(
   const grp4 = makeGroup();
   grp4.appendChild(makeButton(LABEL_ALIGN_LEFT, "Align left", "align", "left"));
   grp4.appendChild(
-    makeButton(LABEL_ALIGN_CENTER, "Align center", "align", "center")
+    makeButton(LABEL_ALIGN_CENTER, "Align center", "align", "center"),
   );
   grp4.appendChild(
-    makeButton(LABEL_ALIGN_RIGHT, "Align right", "align", "right")
+    makeButton(LABEL_ALIGN_RIGHT, "Align right", "align", "right"),
   );
   toolbar.appendChild(grp4);
   toolbar.appendChild(makeSep());
@@ -230,8 +231,8 @@ export function injectToolbar(
       options,
       "Text color",
       "foreColor",
-      (format as any).foreColor
-    )
+      (format as any).foreColor,
+    ),
   );
   grp5.appendChild(
     makeColorInput(
@@ -239,8 +240,8 @@ export function injectToolbar(
       options,
       "Highlight color",
       "hiliteColor",
-      (format as any).hiliteColor
-    )
+      (format as any).hiliteColor,
+    ),
   );
   toolbar.appendChild(grp5);
   toolbar.appendChild(makeSep());
@@ -270,5 +271,12 @@ export function injectToolbar(
   // Keyboard navigation for toolbar
   setupNavigation(toolbar);
 
-  doc.body.insertBefore(toolbar, doc.body.firstChild);
+  // Mount toolbar inside the scoped editor root so template styles cannot leak in.
+  try {
+    const root = getEditorRoot(doc);
+    root.insertBefore(toolbar, root.firstChild);
+  } catch (e) {
+    // Fallback to previous behavior if root insertion fails
+    doc.body.insertBefore(toolbar, doc.body.firstChild);
+  }
 }

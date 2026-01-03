@@ -17,7 +17,7 @@ describe("RichHtmlEditor class", () => {
 
   it("throws when selector not found", () => {
     expect(() => new RichHtmlEditor({ iframe: "#no-such" })).toThrow(
-      /Iframe selector "#no-such" not found/
+      /Iframe selector "#no-such" not found/,
     );
   });
 
@@ -26,7 +26,7 @@ describe("RichHtmlEditor class", () => {
     div.id = "not-iframe";
     document.body.appendChild(div);
     expect(() => new RichHtmlEditor({ iframe: "#not-iframe" })).toThrow(
-      /did not resolve to an iframe/
+      /did not resolve to an iframe/,
     );
   });
 
@@ -40,7 +40,7 @@ describe("RichHtmlEditor class", () => {
     });
     document.body.appendChild(iframe);
     expect(() => new RichHtmlEditor({ iframe: "#no-content-window" })).toThrow(
-      /Iframe has no contentWindow/
+      /Iframe has no contentWindow/,
     );
   });
 

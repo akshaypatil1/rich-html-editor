@@ -17,7 +17,7 @@ describe("toolbar.selects makeSelect", () => {
       { onCommand },
       "Size",
       "fontSize",
-      optionsList
+      optionsList,
     );
     document.body.appendChild(sel);
 
@@ -40,7 +40,7 @@ describe("toolbar.selects makeSelect", () => {
       "Size",
       "fontSize",
       optionsList,
-      "24"
+      "24",
     );
     document.body.appendChild(sel);
     expect((sel as HTMLSelectElement).value).toBe("24");
@@ -57,7 +57,7 @@ describe("toolbar.selects makeSelect", () => {
       { onCommand },
       "Fmt",
       "formatBlock",
-      optionsList
+      optionsList,
     );
     document.body.appendChild(sel);
 

@@ -14,12 +14,12 @@ export function setupOverflow(
       title: string,
       command: string,
       optionsList: { label: string; value: string }[],
-      initialValue?: string | null
+      initialValue?: string | null,
     ) => HTMLElement;
     makeColorInput: (
       title: string,
       command: string,
-      initialColor?: string
+      initialColor?: string,
     ) => HTMLElement;
     makeButton: (
       label: string,
@@ -27,10 +27,10 @@ export function setupOverflow(
       command: string,
       value?: string,
       isActive?: boolean,
-      disabled?: boolean
+      disabled?: boolean,
     ) => HTMLElement;
     makeGroup: () => HTMLElement;
-  }
+  },
 ) {
   const overflowBtn = doc.createElement("button");
   overflowBtn.type = "button";
@@ -51,7 +51,7 @@ export function setupOverflow(
     overflowMenu.hidden = false;
     overflowBtn.setAttribute("aria-expanded", "true");
     const first = overflowMenu.querySelector<HTMLElement>(
-      "button, select, input"
+      "button, select, input",
     );
     first?.focus();
   }
@@ -99,34 +99,38 @@ export function setupOverflow(
       "Format",
       "formatBlock",
       (window as any).RHE_FORMAT_OPTIONS || [],
-      (format as any).formatBlock
-    )
+      (format as any).formatBlock,
+    ),
   );
   overflowMenu.appendChild(
     helpers.makeSelect(
       "Font",
       "fontName",
       (window as any).RHE_FONT_OPTIONS || [],
-      (format as any).fontName
-    )
+      (format as any).fontName,
+    ),
   );
   overflowMenu.appendChild(
     helpers.makeSelect(
       "Size",
       "fontSize",
       (window as any).RHE_SIZE_OPTIONS || [],
-      (format as any).fontSize
-    )
+      (format as any).fontSize,
+    ),
   );
   overflowMenu.appendChild(
-    helpers.makeColorInput("Text color", "foreColor", (format as any).foreColor)
+    helpers.makeColorInput(
+      "Text color",
+      "foreColor",
+      (format as any).foreColor,
+    ),
   );
   overflowMenu.appendChild(
     helpers.makeColorInput(
       "Highlight color",
       "hiliteColor",
-      (format as any).hiliteColor
-    )
+      (format as any).hiliteColor,
+    ),
   );
   overflowMenu.appendChild(helpers.makeButton("Link", "Insert link", "link"));
 

@@ -69,7 +69,7 @@ describe("history advanced restoration", () => {
 
     // find the appended script and simulate load to resolve promise
     const script = mockDoc.querySelector(
-      'script[src="https://example.com/test.js"]'
+      'script[src="https://example.com/test.js"]',
     );
     expect(script).not.toBeNull();
 

@@ -58,7 +58,7 @@ export function computeFormatState(doc: Document): {
     // Try to detect text color and highlight (background) color at the selection
     const foreColor =
       (el.closest("font[color]") as HTMLElement | null)?.getAttribute(
-        "color"
+        "color",
       ) ||
       (computed && computed.color) ||
       null;

@@ -77,7 +77,7 @@ describe("toolbar.render injectToolbar", () => {
 
     // Color input change triggers onCommand via onchange
     const colorInput = toolbar.querySelector<HTMLInputElement>(
-      "input[title='Text color']"
+      "input[title='Text color']",
     );
     if (colorInput) {
       colorInput.value = "#ff0000";

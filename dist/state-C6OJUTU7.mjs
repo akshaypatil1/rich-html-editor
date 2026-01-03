@@ -11,7 +11,7 @@ import {
   _setUndoStack,
   pushStandaloneSnapshot,
   setMaxStackSize
-} from "./chunk-GJUQLM52.mjs";
+} from "./chunk-RTJONDEC.mjs";
 export {
   _getCurrentEditable,
   _getDoc,
@@ -26,4 +26,4 @@ export {
   pushStandaloneSnapshot,
   setMaxStackSize
 };
-//# sourceMappingURL=state-XHVVMFUB.mjs.map
+//# sourceMappingURL=state-C6OJUTU7.mjs.map

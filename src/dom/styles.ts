@@ -29,6 +29,40 @@ export function injectStyles(doc: Document): void {
   const styleId = STYLE_ID;
   let styleEl = doc.getElementById(styleId) as HTMLStyleElement | null;
   const css = `
+/* Scoped conservative reset for editor UI root to prevent template styles leaking in */
+#rhe-editor-root {
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#rhe-editor-root *,
+#rhe-editor-root *::before,
+#rhe-editor-root *::after {
+  box-sizing: inherit;
+}
+/* Restore user-agent defaults for native controls inside the root */
+#rhe-editor-root button,
+#rhe-editor-root input,
+#rhe-editor-root textarea,
+#rhe-editor-root select {
+  all: revert;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+/* Basic focus visibility for accessibility inside root */
+#rhe-editor-root :focus {
+  outline: 2px solid Highlight;
+  outline-offset: 2px;
+}
+
 .${CLASS_EDITABLE}{outline:2px dashed ${HOVER_OUTLINE};cursor:text}
 .${CLASS_ACTIVE}{outline:2px solid ${ACTIVE_OUTLINE};cursor:text}
 #${TOOLBAR_ID} img{cursor:auto}
